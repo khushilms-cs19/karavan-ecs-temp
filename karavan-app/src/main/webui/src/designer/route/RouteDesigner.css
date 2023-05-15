@@ -1,0 +1,55 @@
+.sticky {
+    position: sticky;
+    top: 0;
+}
+
+.thumbnail-section {
+    width: 200px;
+    border: 1px solid #d2d2d2;
+    border-top: none;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    max-height: 90vh;
+    padding: 4px;
+    position: sticky;
+    top: 0;
+}
+
+.thumbnail-header {
+    font-size: 32px;
+}
+
+.single-thumbnail {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 150px;
+    border: 2px solid #d2d2d2;
+    height: 180px;
+}
+
+.thumbnail-body {
+    height: 100%;
+}
+
+.single-thumbnail-image {
+    height: 100%;
+    width: 100%;
+    object-fit: cover;
+}
+
+.scrollable {
+    overflow-y: scroll;
+}
+
+.routes-window {
+    display: flex;
+    flex-direction: column;
+}
+
+.designer-body {
+    display: flex;
+    flex-direction: row;
+}

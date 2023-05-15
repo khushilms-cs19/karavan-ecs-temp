@@ -1,0 +1,59 @@
+.tools-tab{
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  /* padding: 8px; */
+  font-size: 24px;
+  border: 1px solid;
+  border-color: transparent #d2d2d2 transparent transparent;
+  position: sticky;
+  top: 0;
+}
+
+.tools-sec {
+  display: flex;
+  border: 1px solid;
+  border-color: transparent #d2d2d2 transparent transparent;
+  width: 400px;
+  overflow-y: scroll;
+  height: 100%;
+}
+
+.tools-search-bar {
+  display: flex;
+  gap: 8px;
+  padding: 16px 8px 8px 8px;
+}
+
+.tools-list{
+  display: flex;
+  flex-wrap: wrap;
+  padding: 8px;
+  gap: 8px;
+  width: 350px;
+  height: 100%;
+}
+
+.allIcon{
+  cursor: pointer;
+  padding: 10px;
+}
+
+.kameletsIcon{
+  cursor: pointer;
+  padding: 10px;
+}
+
+.eipIcon{
+  cursor: pointer;
+  padding: 10px;
+}
+
+.componentsIcon{
+  cursor: pointer;
+  padding: 10px;
+}
+
+.isClickedSideBar{
+  background:#06c;
+}
