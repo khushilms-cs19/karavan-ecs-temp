@@ -34,6 +34,7 @@ import {ProjectPageToolbar} from "./ProjectPageToolbar";
 import {ProjectFilesTable} from "./ProjectFilesTable";
 import {TemplateApi} from "karavan-core/lib/api/TemplateApi";
 import { debounce } from 'lodash';
+import axios from 'axios';
 
 interface Props {
     project: Project,
@@ -45,6 +46,7 @@ interface State {
     project?: Project,
     file?: ProjectFile,
     files: ProjectFile[],
+    dbFiles: ProjectFile[],
     isUploadModalOpen: boolean,
     isDeleteModalOpen: boolean,
     isCreateModalOpen: boolean,
@@ -66,6 +68,7 @@ export class ProjectPage extends React.Component<Props, State> {
         isCreateModalOpen: false,
         isDeleteModalOpen: false,
         files: [],
+        dbFiles: [],
         mode: "design",
         editAdvancedProperties: false,
         key: '',
@@ -75,8 +78,49 @@ export class ProjectPage extends React.Component<Props, State> {
         environment: this.props.config.environment
     };
 
+    interval: any;
+
+
+    handleProjectFiles = async () => {
+        await axios.get(`http://localhost:3000/mongo/files/1/${this.state.project?.projectId}`)
+            .then(res => {
+                this.setState(prevState => ({
+                    ...prevState,
+                    dbFiles: res.data
+                  }));
+            })
+            .catch(err => {
+                console.error(err);
+            });
+
+            if(this.state.dbFiles.length === 0) {
+                await axios.post('http://localhost:3000/mongo/file', {
+                    name: this.state.files[0].name,
+                    code: this.state.files[0].code,
+                    projectId: this.state.project?.projectId,
+                    lastUpdate: this.state.files[0].lastUpdate,
+                    userId: 1
+                }).then(res => {
+                    console.log(res);
+                }).catch(err => {
+                    console.error(err);
+                });
+            }
+    }
+
     componentDidMount() {
         this.onRefresh();
+        this.handleProjectFiles();
+    }
+
+    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
+        if(prevState.isCreateModalOpen !== this.state.isCreateModalOpen) {
+            this.handleProjectFiles();
+        }
+    }
+
+    componentWillUnmount() {
+        clearInterval(this.interval);
     }
 
     needCommit(): boolean {
@@ -139,7 +183,7 @@ export class ProjectPage extends React.Component<Props, State> {
                     return state
                 }))
             } else {
-                // console.log(res) //TODO show notification
+                console.error(res);
             }
         })
     }
@@ -148,13 +192,32 @@ export class ProjectPage extends React.Component<Props, State> {
         navigator.clipboard.writeText(data);
     }
 
-    save = (name: string, code: string) => {
+    postCode = async (file: any) => {
+        axios.put('http://localhost:3000/mongo/file', {
+            userId: 1,
+            projectId: file?.projectId,
+            name: file?.name,
+            code: file?.code,
+            lastUpdate: file?.lastUpdate
+        })
+        .then(res => {
+            if (res.status === 201) {
+                console.log("code updated");
+            } else {
+            }
+        });
+        console.log("postCode", file);
+    }
+
+    save = async (name: string, code: string) => {
         const file = this.state.file;
         if (file) {
             file.code = code;
             this.setState({file: file});
             this.post(file);
         }
+        await this.postCode(file);
+        console.log("save", file);
     }
 
     download = () => {
@@ -252,7 +315,22 @@ export class ProjectPage extends React.Component<Props, State> {
         this.setState({isDeleteModalOpen: true, fileToDelete: file})
     }
 
-    delete = () => {
+    deleteProjectFile = async() => {
+        if (this.state.fileToDelete) {
+            await axios.delete(`http://localhost:3000/mongo/file/1/${this.state.fileToDelete.projectId}/${this.state.fileToDelete.name}`)
+            .then(res => {
+                if (res.status === 204) {
+                    console.log("deleted");
+                } else {
+                }
+            });
+        }
+        this.setState({dbFiles: this.state.dbFiles.filter(file => file.name !== this.state.fileToDelete?.name)})
+    }
+
+
+    delete = async () => {
+        await this.deleteProjectFile();
         if (this.state.fileToDelete) {
             KaravanApi.deleteProjectFile(this.state.fileToDelete, res => {
                 if (res.status === 204) {
@@ -421,11 +499,11 @@ export class ProjectPage extends React.Component<Props, State> {
                     <PageSection padding={{default: "padding"}}>
                         {tab === 'development' && project && <ProjectInfo project={project}
                                                                           needCommit={this.needCommit()}
-                                                                          files={files}
+                                                                          files={this.state.dbFiles}
                                                                           config={this.props.config}
                                                                           deleteEntity={this.deleteEntity}
                                                                           showLog={this.showLogs}/>}
-                        {tab === 'development' && <ProjectFilesTable files={files}
+                        {tab === 'development' && <ProjectFilesTable files={this.state.dbFiles}
                                                                      onOpenDeleteConfirmation={this.openDeleteConfirmation}
                                                                      onSelect={this.select}/>}
                         {tab === 'operations' && <ProjectOperations environments={this.state.environments} project={this.props.project} config={this.props.config}/>}
@@ -471,7 +549,9 @@ export class ProjectPage extends React.Component<Props, State> {
                 <CreateFileModal project={project}
                                  isOpen={isCreateModalOpen}
                                  types={types}
-                                 onClose={this.closeModal}/>
+                                 onClose={this.closeModal}
+                                 handleProjectFiles={this.handleProjectFiles}
+                                 />
                 <Modal
                     title="Confirmation"
                     variant={ModalVariant.small}

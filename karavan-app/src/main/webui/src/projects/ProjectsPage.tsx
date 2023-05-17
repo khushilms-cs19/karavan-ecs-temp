@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import {
     Alert,
     Toolbar,
@@ -41,6 +42,7 @@ interface Props {
 
 interface State {
     projects: Project[],
+    allProjects: Project[],
     deploymentStatuses: DeploymentStatus[],
     isCreateModalOpen: boolean,
     isDeleteModalOpen: boolean,
@@ -60,6 +62,7 @@ export class ProjectsPage extends React.Component<Props, State> {
 
     public state: State = {
         projects: [],
+        allProjects: [],
         deploymentStatuses: [],
         isCreateModalOpen: false,
         isDeleteModalOpen: false,
@@ -74,8 +77,9 @@ export class ProjectsPage extends React.Component<Props, State> {
     };
     interval: any;
 
-    componentDidMount() {
+    componentDidMount () {
         this.interval = setInterval(() => this.onGetProjects(), 1300);
+        this.interval = setInterval(() => this.fetchAllProjects(), 1300);
     }
 
     componentWillUnmount() {
@@ -100,8 +104,9 @@ export class ProjectsPage extends React.Component<Props, State> {
     };
 
 
-    deleteProject = () => {
-        if (this.state.projectToDelete)
+    deleteProject = async () => {
+        if (this.state.projectToDelete){
+            await axios.delete(`http://localhost:3000/mongo/project/1/${this.state.projectToDelete.name}`)
             KaravanApi.deleteProject(this.state.projectToDelete, res => {
                 if (res.status === 204) {
                     this.props.toast?.call(this, "Success", "Project deleted", "success");
@@ -110,6 +115,7 @@ export class ProjectsPage extends React.Component<Props, State> {
                     this.props.toast?.call(this, "Error", res.statusText, "danger");
                 }
             });
+        }
         this.setState({isDeleteModalOpen: false})
     }
 
@@ -123,6 +129,14 @@ export class ProjectsPage extends React.Component<Props, State> {
             }
         });
     };
+
+    fetchAllProjects = async() => {
+        await axios.get(`http://localhost:3000/mongo/projects/1`)
+            .then(res => {
+                const projects = res.data;
+                this.setState({ allProjects: projects });
+            })
+    }
 
     onGetProjects = () => {
         this.setState({loading: true});
@@ -160,8 +174,26 @@ export class ProjectsPage extends React.Component<Props, State> {
         this.onGetProjects();
     }
 
-    saveAndCloseCreateModal = () => {
+    sendProjectDetails = async () => {
         const {name, description, projectId, runtime} = this.state;
+        await axios.post('http://localhost:3000/mongo/project', {
+            name: name,
+            description: description,
+            projectId: projectId,
+            runtime: runtime,
+            lastCommit: '',
+            userId: 1
+        })
+            .then((response) => {
+                console.log(response);
+            }, (error) => {
+                console.log(error);
+            });
+    }
+
+    saveAndCloseCreateModal = async () => {
+        const {name, description, projectId, runtime} = this.state;
+        await this.sendProjectDetails();
         const p = new Project(projectId, name, description, runtime, '');
         this.onProjectCreate(p);
         this.setState({isCreateModalOpen: false, isCopy: false, name: this.props.config.groupId, description: '', projectId: ''});
@@ -290,8 +322,9 @@ export class ProjectsPage extends React.Component<Props, State> {
 
 
     getProjectsTable() {
-        const {projects, filter} = this.state;
+        const {projects, filter, allProjects} = this.state;
         const projs = projects.filter(p => p.name.toLowerCase().includes(filter) || p.description.toLowerCase().includes(filter));
+        const allProjs = allProjects.filter(p => p.name.toLowerCase().includes(filter) || p.description.toLowerCase().includes(filter));
         return (
             <TableComposable aria-label="Projects" variant={"compact"}>
                 <Thead>
@@ -307,6 +340,18 @@ export class ProjectsPage extends React.Component<Props, State> {
                 </Thead>
                 <Tbody>
                     {projs.map(project => (
+                        (project.projectId === 'templates' || project.projectId === 'kamelets') &&
+                            <ProjectsTableRow
+                                key={project.projectId}
+                                config={this.props.config}
+                                onSelect={this.props.onSelect}
+                                onProjectDelete={this.onProjectDelete}
+                                onProjectCopy={project1 => this.setState({isCreateModalOpen: true, isCopy: true, projectToCopy: project1})}
+                                project={project}
+                                deploymentStatuses={this.state.deploymentStatuses}
+                            />
+                    ))}
+                    {allProjs.map(project => (
                         <ProjectsTableRow
                             key={project.projectId}
                             config={this.props.config}

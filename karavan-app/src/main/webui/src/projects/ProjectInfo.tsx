@@ -188,7 +188,9 @@ export class ProjectInfo extends React.Component<Props, State> {
                 }
                 <FlexItem>
                     <Tooltip content={project?.lastCommit} position={"right"}>
-                        <Label color={color}>{project?.lastCommit ? project?.lastCommit?.substr(0, 7) : "-"}</Label>
+                        <Label color={color}>
+                            {/* {project?.lastCommit ? project?.lastCommit?.substr(0, 7) : "-"} */}
+                        </Label>
                     </Tooltip>
                 </FlexItem>
             </Flex>)

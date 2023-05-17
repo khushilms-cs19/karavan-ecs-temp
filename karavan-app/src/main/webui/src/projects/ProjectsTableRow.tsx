@@ -1,44 +1,16 @@
 import React from 'react';
 import {Link} from "react-router-dom";
 import {
-    Toolbar,
-    ToolbarContent,
-    ToolbarItem,
-    TextInput,
-    PageSection,
-    TextContent,
-    Text,
     Button,
-    Modal,
-    FormGroup,
-    ModalVariant,
-    Form,
     Badge,
     Tooltip,
-    Bullseye,
-    EmptyState,
-    EmptyStateVariant,
-    EmptyStateIcon,
-    Title,
-    OverflowMenu,
-    OverflowMenuContent,
-    OverflowMenuGroup,
-    OverflowMenuItem,
-    Flex, FlexItem, Radio, Spinner
+    Flex, FlexItem
 } from '@patternfly/react-core';
 import '../designer/karavan.css';
-import {MainToolbar} from "../MainToolbar";
-import RefreshIcon from '@patternfly/react-icons/dist/esm/icons/sync-alt-icon';
-import PlusIcon from '@patternfly/react-icons/dist/esm/icons/plus-icon';
 import {DeploymentStatus, Project} from "./ProjectModels";
-import {TableComposable, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
+import {Td, Tr} from "@patternfly/react-table";
 import DeleteIcon from "@patternfly/react-icons/dist/js/icons/times-icon";
-import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
 import CopyIcon from "@patternfly/react-icons/dist/esm/icons/copy-icon";
-import {CamelUi} from "../designer/utils/CamelUi";
-import {KaravanApi} from "../api/KaravanApi";
-import {QuarkusIcon, SpringIcon} from "../designer/utils/KaravanIcons";
-import {CamelUtil} from "karavan-core/lib/api/CamelUtil";
 
 interface Props {
     config: any,
@@ -93,7 +65,9 @@ export class ProjectsTableRow extends React.Component<Props, State> {
                 <Td>{project.description}</Td>
                 <Td isActionCell>
                     <Tooltip content={project.lastCommit} position={"bottom"}>
-                        <Badge>{project.lastCommit?.substr(0, 7)}</Badge>
+                        <Badge>
+                            {/* {project.lastCommit?.substr(0, 7)} */}
+                        </Badge>
                     </Tooltip>
                 </Td>
                 <Td noPadding style={{width: "180px"}}>
@@ -122,24 +96,6 @@ export class ProjectsTableRow extends React.Component<Props, State> {
                                 </Tooltip>
                             </FlexItem>
                         </Flex>
-
-                        // <OverflowMenu breakpoint="md">
-                        //     <OverflowMenuContent >
-                        //         <OverflowMenuGroup groupType="button">
-                        //             <OverflowMenuItem>
-                        //                 <Tooltip content={"Copy project"} position={"bottom"}>
-                        //                     <Button variant={"plain"} icon={<CopyIcon/>}
-                        //                             onClick={e => onProjectCopy.call(this, project)}></Button>
-                        //                 </Tooltip>
-                        //             </OverflowMenuItem>
-                        //             <OverflowMenuItem>
-                        //                 <Tooltip content={"Delete project"} position={"bottom"}>
-                        //                     <Button variant={"plain"} icon={<DeleteIcon/>} onClick={e => onProjectDelete.call(this, project)}></Button>
-                        //                 </Tooltip>
-                        //             </OverflowMenuItem>
-                        //         </OverflowMenuGroup>
-                        //     </OverflowMenuContent>
-                        // </OverflowMenu>
                     }
                 </Td>
             </Tr>

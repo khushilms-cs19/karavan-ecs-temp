@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import {
     Button,
     Modal,
@@ -13,12 +14,14 @@ import {Project, ProjectFile, ProjectFileTypes} from "./ProjectModels";
 import {CamelUi} from "../designer/utils/CamelUi";
 import {Integration} from "karavan-core/lib/model/IntegrationDefinition";
 import {CamelDefinitionYaml} from "karavan-core/lib/api/CamelDefinitionYaml";
+import { BASE_URL, API_URL } from '../constants/mongoAPIs';
 
 interface Props {
     isOpen: boolean,
     project: Project,
     onClose: any,
     types: string[]
+    handleProjectFiles: any
 }
 
 interface State {
@@ -37,8 +40,24 @@ export class CreateFileModal extends React.Component<Props, State> {
         this.props.onClose?.call(this);
     }
 
-    saveAndCloseModal = () => {
+    sendProjectFile = async () => {
         const {name, fileType} = this.state;
+        const extension = ProjectFileTypes.filter(value => value.name === fileType)[0].extension;
+        await axios.post('http://localhost:3000/mongo/file', {
+            name: name+'.'+extension,
+            projectId: this.props.project.projectId,
+            code: '',
+            lastUpdate: Date.now(),
+            userId: 1,
+        }).then(res => {
+            console.log(res);
+        })
+    }
+
+    saveAndCloseModal = async () => {
+        const {name, fileType} = this.state;
+        await this.props.handleProjectFiles();
+        await this.sendProjectFile();
         const extension = ProjectFileTypes.filter(value => value.name === fileType)[0].extension;
         const filename = (extension !== 'java') ? CamelUi.nameFromTitle(name) : CamelUi.javaNameFromTitle(name);
         const code = fileType === 'INTEGRATION'

@@ -59,12 +59,12 @@ export class ProjectFilesTable extends React.Component<Props, State> {
                                 <Badge>{type}</Badge>
                             </Td>
                             <Td>
-                                <Link to={`/projects/${file.projectId}/${file.name}`}>
+                                {/* <Link to={`/projects/${file.projectId}/${file.name}`}> */}
                                 <Button style={{padding: '6px'}} variant={"link"}
                                         onClick={e => onSelect.call(this, file)}>
                                     {file.name}
                                 </Button>
-                                </Link>
+                                {/* </Link> */}
                             </Td>
                             <Td>
                                 {this.getDate(file.lastUpdate)}

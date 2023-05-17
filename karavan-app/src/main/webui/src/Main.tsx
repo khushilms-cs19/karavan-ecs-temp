@@ -3,33 +3,26 @@ import { BrowserRouter, Route, Routes, Link} from 'react-router-dom';
 import {
     Page,
     Button,
-    Alert,
-    AlertActionCloseButton,
     Flex,
     FlexItem,
     Tooltip,
-    Divider, Spinner, Bullseye, Popover, Badge
+    Divider, 
+    Popover,
+    Badge
 } from '@patternfly/react-core';
 import { KaravanApi } from "./api/KaravanApi";
 import { SsoApi } from "./api/SsoApi";
 import { KameletApi } from "karavan-core/lib/api/KameletApi";
 import './designer/karavan.css';
-import { KameletsPage } from "./kamelets/KameletsPage";
 import { v4 as uuidv4 } from "uuid";
 import { ComponentApi } from "karavan-core/lib/api/ComponentApi";
 import Icon from "./Logo";
-import { ComponentsPage } from "./components/ComponentsPage";
-import { EipPage } from "./eip/EipPage";
 import { ProjectsPage } from "./projects/ProjectsPage";
 import { Project } from "./projects/ProjectModels";
 import { ProjectPage } from "./projects/ProjectPage";
 import UserIcon from "@patternfly/react-icons/dist/js/icons/user-icon";
 import ProjectsIcon from "@patternfly/react-icons/dist/js/icons/repository-icon";
-import KameletsIcon from "@patternfly/react-icons/dist/js/icons/registry-icon";
 import DashboardIcon from "@patternfly/react-icons/dist/js/icons/tachometer-alt-icon";
-import EipIcon from "@patternfly/react-icons/dist/js/icons/topology-icon";
-import ComponentsIcon from "@patternfly/react-icons/dist/js/icons/module-icon";
-import { MainLogin } from "./MainLogin";
 import { DashboardPage } from "./dashboard/DashboardPage";
 import Navbar from "./navbar/Navbar";
 import { TimesIcon } from "@patternfly/react-icons";
@@ -178,10 +171,7 @@ export class Main extends React.Component<Props, State> {
     pageNav = () => {
         const pages: MenuItem[] = [
             new MenuItem("dashboard", "Dashboard", <DashboardIcon color={this.state.pageId === 'dashboard' ? 'white' : 'var(--mck-deep-blue)'} />),
-            new MenuItem("projects", "Projects", <ProjectsIcon color={this.state.pageId === 'projects' ? 'white' : 'var(--mck-deep-blue)'} />),
-            // new MenuItem("eip", "Enterprise Integration Patterns", <EipIcon color={this.state.pageId === 'eip' ? 'white' : 'var(--mck-deep-blue)'} />),
-            // new MenuItem("kamelets", "Kamelets", <KameletsIcon color={this.state.pageId === 'kamelets' ? 'white' : 'var(--mck-deep-blue)'} />),
-            // new MenuItem("components", "Components", <ComponentsIcon color={this.state.pageId === 'components' ? 'white' : 'var(--mck-deep-blue)'} />)
+            new MenuItem("projects", "Projects", <ProjectsIcon color={this.state.pageId === 'projects' ? 'white' : 'var(--mck-deep-blue)'} />)
         ]
         return (<Flex className="nav-buttons" direction={{ default: "column" }} style={{ height: "100%", backgroundColor: "#E9E6E4", width: "250px" }}
             spaceItems={{ default: "spaceItemsNone" }}>
@@ -201,21 +191,10 @@ export class Main extends React.Component<Props, State> {
                     </FlexItem>
                 </Flex>
             </FlexItem>
-            {/* {pages.map(page =>
-                <FlexItem key={page.pageId} className={this.state.pageId === page.pageId ? "nav-button-selected" : ""}>
-                    <Tooltip content={page.tooltip} position={"right"}>
-                        <Button id={page.pageId} icon={page.icon} variant={"plain"}
-                                className={this.state.pageId === page.pageId ? "nav-button-selected" : ""}
-                                onClick={event => this.setState({pageId: page.pageId})}
-                        />
-                    </Tooltip>
-                </FlexItem>
-            )} */}
             {
                 pages.map(page =>
                     <Link key={page.pageId} to={`/${page.pageId}`} style={{ textDecoration: 'none', color:'black' }}  >
                     <Flex key={page.pageId} direction={{ default: "column" }} alignItems={{ default: "alignItemsCenter" }} style={{cursor:"pointer"}}>
-                        {/* <Tooltip content={page.tooltip} position={"left"}> */}
                         <FlexItem alignSelf={{ default: "alignSelfFlexStart" }}
                             className={this.state.pageId === page.pageId ? "menubar-button-selected" : ""}
                             onClick={event => {
@@ -271,43 +250,6 @@ export class Main extends React.Component<Props, State> {
         this.setState({ pageId: 'project', project: project });
         localStorage.setItem('project', JSON.stringify(project));
     };
-
-    // getMain() {
-    //     return (
-    //         <>
-    //             <div>
-    //                 <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
-    //             </div>
-    //             <Flex direction={{ default: "row" }} style={{ width: "100%", height: "100%" }}
-    //                 alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
-    //                     {
-    //                         this.state.showMenuModal &&
-    //                         <FlexItem>
-    //                             {this.pageNav()}
-    //                         </FlexItem>
-    //                     }
-    //                 <FlexItem flex={{ default: "flex_2" }} style={{ height: "100%" }}>
-    //                     {this.state.pageId === 'projects' &&
-    //                         <ProjectsPage key={this.state.request}
-    //                             onSelect={this.onProjectSelect}
-    //                             toast={this.toast}
-    //                             config={this.state.config} />}
-    //                     {this.state.pageId === 'project' && this.state.project &&
-    //                         <ProjectPage key="projects" project={this.state.project} config={this.state.config} />}
-    //                     {this.state.pageId === 'dashboard' && <DashboardPage key={this.state.request}
-    //                         onSelect={this.onProjectSelect}
-    //                         toast={this.toast}
-    //                         config={this.state.config} />}
-    //                     {this.state.pageId === 'kamelets' &&
-    //                         <KameletsPage dark={false} onRefresh={this.updateKamelets} />}
-    //                     {this.state.pageId === 'components' &&
-    //                         <ComponentsPage dark={false} onRefresh={this.updateComponents} />}
-    //                     {this.state.pageId === 'eip' && <EipPage dark={false} />}
-    //                 </FlexItem>
-    //             </Flex>
-    //         </>
-    //     )
-    // }
 
     render() {
         return (
@@ -372,7 +314,7 @@ export class Main extends React.Component<Props, State> {
                         </Flex>
                     </Page>
                 } />
-                <Route path="/projects/:projectId/:projectName" element={
+                {/* <Route path="/projects/:projectId/:projectName" element={
                     <Page className="karavan">
                         <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
                         <Flex direction={{ default: "row" }} style={{ width: "100%", height: "100%" }}
@@ -386,53 +328,6 @@ export class Main extends React.Component<Props, State> {
                             {this.state.project &&
                             <ProjectPage key="projects" project={this.state.project} config={this.state.config} />
                             }
-                        </Flex>
-                    </Page>
-                } />
-              
-            {/* <Route path="/kamelets" element={
-            <Route path="/kamelets" element={
-                    <Page className="karavan">
-                        <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
-                        <Flex direction={{ default: "column" }} style={{ width: "100%", height: "100%" }}
-                            alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
-                            {
-                                this.state.showMenuModal &&
-                                <FlexItem>
-                                    {this.pageNav()}
-                                </FlexItem>
-                            }
-                            <KameletsPage dark={false} onRefresh={this.updateKamelets} />
-                        </Flex>
-                    </Page>
-                } />
-                <Route path="/components" element={
-                    <Page className="karavan">
-                        <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
-                        <Flex direction={{ default: "row" }} style={{ width: "100%", height: "100%" }}
-                            alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
-                            {
-                                this.state.showMenuModal &&
-                                <FlexItem>
-                                    {this.pageNav()}
-                                </FlexItem>
-                            }
-                            <ComponentsPage dark={false} onRefresh={this.updateComponents} />
-                        </Flex>
-                    </Page>
-                } />
-                <Route path="/eip" element={
-                    <Page className="karavan">
-                        <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
-                        <Flex direction={{ default: "column" }} style={{ width: "100%", height: "100%" }}
-                            alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
-                            {
-                                this.state.showMenuModal &&
-                                <FlexItem>
-                                    {this.pageNav()}
-                                </FlexItem>
-                            }
-                            <EipPage dark={false} />
                         </Flex>
                     </Page>
                 } /> */}
