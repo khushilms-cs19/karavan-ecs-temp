@@ -14,7 +14,7 @@ import {Project, ProjectFile, ProjectFileTypes} from "./ProjectModels";
 import {CamelUi} from "../designer/utils/CamelUi";
 import {Integration} from "karavan-core/lib/model/IntegrationDefinition";
 import {CamelDefinitionYaml} from "karavan-core/lib/api/CamelDefinitionYaml";
-import { BASE_URL, API_URL } from '../constants/mongoAPIs';
+import { API_URL } from '../constants/mongoAPIs';
 
 interface Props {
     isOpen: boolean,
@@ -43,7 +43,7 @@ export class CreateFileModal extends React.Component<Props, State> {
     sendProjectFile = async () => {
         const {name, fileType} = this.state;
         const extension = ProjectFileTypes.filter(value => value.name === fileType)[0].extension;
-        await axios.post(`${BASE_URL}/${API_URL}/file`, {
+        await axios.post(`/${API_URL}/file`, {
             name: name+'.'+extension,
             projectId: this.props.project.projectId,
             code: '',
