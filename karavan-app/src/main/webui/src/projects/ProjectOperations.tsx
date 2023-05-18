@@ -28,7 +28,7 @@ export class ProjectOperations extends React.Component<Props, State> {
 
     componentDidMount() {
         this.onRefresh();
-        this.interval = setInterval(() => this.onRefreshStatus(), 3000);
+        this.interval = setInterval(() => this.onRefreshStatus(), 5000);
     }
 
     componentWillUnmount() {

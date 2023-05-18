@@ -58,7 +58,7 @@ export class ProjectInfo extends React.Component<Props, State> {
 
     componentDidMount() {
         this.onRefresh();
-        this.interval = setInterval(() => this.onRefreshStatus(), 700);
+        this.interval = setInterval(() => this.onRefreshStatus(), 5000);
     }
 
     componentWillUnmount() {

@@ -79,9 +79,7 @@ export class ProjectsPage extends React.Component<Props, State> {
     interval: any;
 
     componentDidMount () {
-        // this.interval = setInterval(() => this.onGetProjects(), 2000);
-        // this.interval = setInterval(() => this.fetchAllProjects(), 3000);
-        this.fetchAllProjects();
+        this.interval = setInterval(() => this.fetchAllProjects(), 5000);
         this.onGetProjects();
     }
 
@@ -300,7 +298,6 @@ export class ProjectsPage extends React.Component<Props, State> {
     getEnvironments(): string [] {
         return this.props.config.environments && Array.isArray(this.props.config.environments) ? Array.from(this.props.config.environments) : [];
     }
-
 
     getEmptyState() {
         const {loading} = this.state;

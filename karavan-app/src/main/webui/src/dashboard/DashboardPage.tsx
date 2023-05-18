@@ -68,7 +68,7 @@ export class DashboardPage extends React.Component<Props, State> {
     interval: any;
 
     componentDidMount() {
-        this.interval = setInterval(() => this.onGetProjects(), 1300);
+        this.interval = setInterval(() => this.onGetProjects(), 5000);
     }
 
     componentWillUnmount() {
