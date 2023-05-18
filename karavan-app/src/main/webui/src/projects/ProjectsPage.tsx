@@ -81,7 +81,6 @@ export class ProjectsPage extends React.Component<Props, State> {
     componentDidMount () {
         this.interval = setInterval(() => this.fetchAllProjects(), 5000);
         this.fetchAllProjects();
-        this.onGetProjects();
     }
 
     componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
@@ -346,18 +345,6 @@ export class ProjectsPage extends React.Component<Props, State> {
                     </Tr>
                 </Thead>
                 <Tbody>
-                    {projs.map(project => (
-                        (project.projectId === 'templates' || project.projectId === 'kamelets') &&
-                            <ProjectsTableRow
-                                key={project.projectId}
-                                config={this.props.config}
-                                onSelect={this.props.onSelect}
-                                onProjectDelete={this.onProjectDelete}
-                                onProjectCopy={project1 => this.setState({isCreateModalOpen: true, isCopy: true, projectToCopy: project1})}
-                                project={project}
-                                deploymentStatuses={this.state.deploymentStatuses}
-                            />
-                    ))}
                     {allProjs.map(project => (
                         <ProjectsTableRow
                             key={project.projectId}
@@ -368,7 +355,7 @@ export class ProjectsPage extends React.Component<Props, State> {
                             project={project}
                             deploymentStatuses={this.state.deploymentStatuses}/>
                     ))}
-                    {projs.length === 0 && this.getEmptyState()}
+                    {allProjs.length === 0 && this.getEmptyState()}
                 </Tbody>
             </TableComposable>
         )

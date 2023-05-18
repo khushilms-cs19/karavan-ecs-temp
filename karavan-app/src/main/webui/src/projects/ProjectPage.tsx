@@ -94,7 +94,7 @@ export class ProjectPage extends React.Component<Props, State> {
                 console.error(err);
             });
 
-            if(this.state.dbFiles.length === 0) {
+            if(this.state.dbFiles.length === 0 && this.state.project?.projectId !== 'templates' && this.state.project?.projectId !== 'kamelets') {
                 await axios.post(`/${API_URL}/file`, {
                     name: this.state.files[0].name,
                     code: this.state.files[0].code,
@@ -491,7 +491,7 @@ export class ProjectPage extends React.Component<Props, State> {
             <FlexItem>
                 {isBuildIn &&
                     <PageSection padding={{default: "padding"}}>
-                        {tab === 'development' && <ProjectFilesTable files={files}
+                        {tab === 'development' && <ProjectFilesTable files={this.state.dbFiles}
                                                                      onOpenDeleteConfirmation={this.openDeleteConfirmation}
                                                                      onSelect={this.select}/>}
                     </PageSection>
