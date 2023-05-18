@@ -79,8 +79,15 @@ export class ProjectsPage extends React.Component<Props, State> {
     interval: any;
 
     componentDidMount () {
-        this.interval = setInterval(() => this.fetchAllProjects(), 3000);
+        this.interval = setInterval(() => this.fetchAllProjects(), 5000);
+        this.fetchAllProjects();
         this.onGetProjects();
+    }
+
+    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
+        if((prevState.isCreateModalOpen !== this.state.isCreateModalOpen) || (prevState.isDeleteModalOpen !== this.state.isDeleteModalOpen)) {
+            this.fetchAllProjects();
+        }
     }
 
     componentWillUnmount() {
