@@ -111,6 +111,7 @@ export class Main extends React.Component<Props, State> {
                 this.getData();
             }
         });
+        this.getData();
     }
 
     onLogin = (username: string, password: string) => {

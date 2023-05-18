@@ -35,6 +35,7 @@ import {ProjectFilesTable} from "./ProjectFilesTable";
 import {TemplateApi} from "karavan-core/lib/api/TemplateApi";
 import { debounce } from 'lodash';
 import axios from 'axios';
+import {BASE_URL, API_URL} from '../constants/mongoAPIs';
 
 interface Props {
     project: Project,
@@ -82,7 +83,7 @@ export class ProjectPage extends React.Component<Props, State> {
 
 
     handleProjectFiles = async () => {
-        await axios.get(`http://localhost:3000/mongo/files/1/${this.state.project?.projectId}`)
+        await axios.get(`${BASE_URL}/${API_URL}/files/1/${this.state.project?.projectId}`)
             .then(res => {
                 this.setState(prevState => ({
                     ...prevState,
@@ -94,7 +95,7 @@ export class ProjectPage extends React.Component<Props, State> {
             });
 
             if(this.state.dbFiles.length === 0) {
-                await axios.post('http://localhost:3000/mongo/file', {
+                await axios.post(`${BASE_URL}/${API_URL}/file`, {
                     name: this.state.files[0].name,
                     code: this.state.files[0].code,
                     projectId: this.state.project?.projectId,
@@ -193,7 +194,7 @@ export class ProjectPage extends React.Component<Props, State> {
     }
 
     postCode = async (file: any) => {
-        axios.put('http://localhost:3000/mongo/file', {
+        axios.put(`${BASE_URL}/${API_URL}/file`, {
             userId: 1,
             projectId: file?.projectId,
             name: file?.name,
@@ -214,10 +215,10 @@ export class ProjectPage extends React.Component<Props, State> {
         if (file) {
             file.code = code;
             this.setState({file: file});
-            this.post(file);
+            //this.post(file);
         }
         await this.postCode(file);
-        console.log("save", file);
+        // console.log("save", file);
     }
 
     download = () => {
@@ -317,7 +318,7 @@ export class ProjectPage extends React.Component<Props, State> {
 
     deleteProjectFile = async() => {
         if (this.state.fileToDelete) {
-            await axios.delete(`http://localhost:3000/mongo/file/1/${this.state.fileToDelete.projectId}/${this.state.fileToDelete.name}`)
+            await axios.delete(`${BASE_URL}/${API_URL}/file/1/${this.state.fileToDelete.projectId}/${this.state.fileToDelete.name}`)
             .then(res => {
                 if (res.status === 204) {
                     console.log("deleted");

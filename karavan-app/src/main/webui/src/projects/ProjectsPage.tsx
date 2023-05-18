@@ -33,6 +33,7 @@ import {KaravanApi} from "../api/KaravanApi";
 import {QuarkusIcon, SpringIcon} from "../designer/utils/KaravanIcons";
 import {CamelUtil} from "karavan-core/lib/api/CamelUtil";
 import {ProjectsTableRow} from "./ProjectsTableRow";
+import { BASE_URL, API_URL } from '../constants/mongoAPIs';
 
 interface Props {
     config: any,
@@ -78,8 +79,10 @@ export class ProjectsPage extends React.Component<Props, State> {
     interval: any;
 
     componentDidMount () {
-        this.interval = setInterval(() => this.onGetProjects(), 1300);
-        this.interval = setInterval(() => this.fetchAllProjects(), 1300);
+        // this.interval = setInterval(() => this.onGetProjects(), 2000);
+        // this.interval = setInterval(() => this.fetchAllProjects(), 3000);
+        this.fetchAllProjects();
+        this.onGetProjects();
     }
 
     componentWillUnmount() {
@@ -106,7 +109,7 @@ export class ProjectsPage extends React.Component<Props, State> {
 
     deleteProject = async () => {
         if (this.state.projectToDelete){
-            await axios.delete(`http://localhost:3000/mongo/project/1/${this.state.projectToDelete.name}`)
+            await axios.delete(`${BASE_URL}/${API_URL}/project/1/${this.state.projectToDelete.name}`)
             KaravanApi.deleteProject(this.state.projectToDelete, res => {
                 if (res.status === 204) {
                     this.props.toast?.call(this, "Success", "Project deleted", "success");
@@ -131,7 +134,7 @@ export class ProjectsPage extends React.Component<Props, State> {
     };
 
     fetchAllProjects = async() => {
-        await axios.get(`http://localhost:3000/mongo/projects/1`)
+        await axios.get(`${BASE_URL}/${API_URL}/projects/1`)
             .then(res => {
                 const projects = res.data;
                 this.setState({ allProjects: projects });
@@ -176,7 +179,7 @@ export class ProjectsPage extends React.Component<Props, State> {
 
     sendProjectDetails = async () => {
         const {name, description, projectId, runtime} = this.state;
-        await axios.post('http://localhost:3000/mongo/project', {
+        await axios.post(`${BASE_URL}/${API_URL}/project`, {
             name: name,
             description: description,
             projectId: projectId,

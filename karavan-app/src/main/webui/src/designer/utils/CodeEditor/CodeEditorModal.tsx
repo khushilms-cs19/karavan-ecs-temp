@@ -24,12 +24,12 @@ const CodeEditorModal = (props: Props) => {
 
     const handleConfirmClick = () => {
         const file = new ProjectFile(props.payload.className + '.java', props.payload.projectId, props.code, Date.now());
-        KaravanApi.postProjectFile(file, res => {
-            if (res.status === 200) {
-                console.log('File created successfully');
-            }
-            else console.log('Error creating file');
-        })
+        // KaravanApi.postProjectFile(file, res => {
+        //     if (res.status === 200) {
+        //         console.log('File created successfully');
+        //     }
+        //     else console.log('Error creating file');
+        // })
         handleModalToggle();
     };
 

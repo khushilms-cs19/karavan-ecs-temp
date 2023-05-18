@@ -6,7 +6,7 @@ import {
     FormGroup,
     ModalVariant,
     Form,
-    ToggleGroupItem, ToggleGroup, TextInputGroupMain, TextInputGroupUtilities, TextInputGroup, Text, FormHelperText, HelperText, HelperTextItem, TextInput
+    ToggleGroupItem, ToggleGroup, FormHelperText, HelperText, HelperTextItem, TextInput
 } from '@patternfly/react-core';
 import '../designer/karavan.css';
 import {KaravanApi} from "../api/KaravanApi";
@@ -43,7 +43,7 @@ export class CreateFileModal extends React.Component<Props, State> {
     sendProjectFile = async () => {
         const {name, fileType} = this.state;
         const extension = ProjectFileTypes.filter(value => value.name === fileType)[0].extension;
-        await axios.post('http://localhost:3000/mongo/file', {
+        await axios.post(`${BASE_URL}/${API_URL}/file`, {
             name: name+'.'+extension,
             projectId: this.props.project.projectId,
             code: '',
