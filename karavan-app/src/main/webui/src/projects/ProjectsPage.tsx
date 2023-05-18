@@ -79,7 +79,7 @@ export class ProjectsPage extends React.Component<Props, State> {
     interval: any;
 
     componentDidMount () {
-        this.interval = setInterval(() => this.fetchAllProjects(), 5000);
+        this.interval = setInterval(() => this.fetchAllProjects(), 3000);
         this.onGetProjects();
     }
 
