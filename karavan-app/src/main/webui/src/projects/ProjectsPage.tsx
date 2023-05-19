@@ -33,7 +33,7 @@ import {KaravanApi} from "../api/KaravanApi";
 import {QuarkusIcon, SpringIcon} from "../designer/utils/KaravanIcons";
 import {CamelUtil} from "karavan-core/lib/api/CamelUtil";
 import {ProjectsTableRow} from "./ProjectsTableRow";
-import { BASE_URL, API_URL } from '../constants/mongoAPIs';
+import { API_URL } from '../constants/mongoAPIs';
 
 interface Props {
     config: any,
@@ -81,7 +81,6 @@ export class ProjectsPage extends React.Component<Props, State> {
     componentDidMount () {
         this.interval = setInterval(() => this.fetchAllProjects(), 5000);
         this.fetchAllProjects();
-        this.onGetProjects();
     }
 
     componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
@@ -114,7 +113,7 @@ export class ProjectsPage extends React.Component<Props, State> {
 
     deleteProject = async () => {
         if (this.state.projectToDelete){
-            await axios.delete(`${BASE_URL}/${API_URL}/project/1/${this.state.projectToDelete.name}`)
+            await axios.delete(`/${API_URL}/project/1/${this.state.projectToDelete.name}`)
             KaravanApi.deleteProject(this.state.projectToDelete, res => {
                 if (res.status === 204) {
                     this.props.toast?.call(this, "Success", "Project deleted", "success");
@@ -139,7 +138,7 @@ export class ProjectsPage extends React.Component<Props, State> {
     };
 
     fetchAllProjects = async() => {
-        await axios.get(`${BASE_URL}/${API_URL}/projects/1`)
+        await axios.get(`/${API_URL}/projects/1`)
             .then(res => {
                 const projects = res.data;
                 this.setState({ allProjects: projects });
@@ -184,7 +183,7 @@ export class ProjectsPage extends React.Component<Props, State> {
 
     sendProjectDetails = async () => {
         const {name, description, projectId, runtime} = this.state;
-        await axios.post(`${BASE_URL}/${API_URL}/project`, {
+        await axios.post(`/${API_URL}/project`, {
             name: name,
             description: description,
             projectId: projectId,
@@ -346,18 +345,6 @@ export class ProjectsPage extends React.Component<Props, State> {
                     </Tr>
                 </Thead>
                 <Tbody>
-                    {projs.map(project => (
-                        (project.projectId === 'templates' || project.projectId === 'kamelets') &&
-                            <ProjectsTableRow
-                                key={project.projectId}
-                                config={this.props.config}
-                                onSelect={this.props.onSelect}
-                                onProjectDelete={this.onProjectDelete}
-                                onProjectCopy={project1 => this.setState({isCreateModalOpen: true, isCopy: true, projectToCopy: project1})}
-                                project={project}
-                                deploymentStatuses={this.state.deploymentStatuses}
-                            />
-                    ))}
                     {allProjs.map(project => (
                         <ProjectsTableRow
                             key={project.projectId}
@@ -368,7 +355,7 @@ export class ProjectsPage extends React.Component<Props, State> {
                             project={project}
                             deploymentStatuses={this.state.deploymentStatuses}/>
                     ))}
-                    {projs.length === 0 && this.getEmptyState()}
+                    {allProjs.length === 0 && this.getEmptyState()}
                 </Tbody>
             </TableComposable>
         )

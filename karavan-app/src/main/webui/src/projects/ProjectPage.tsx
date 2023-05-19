@@ -35,7 +35,7 @@ import {ProjectFilesTable} from "./ProjectFilesTable";
 import {TemplateApi} from "karavan-core/lib/api/TemplateApi";
 import { debounce } from 'lodash';
 import axios from 'axios';
-import {BASE_URL, API_URL} from '../constants/mongoAPIs';
+import {API_URL} from '../constants/mongoAPIs';
 
 interface Props {
     project: Project,
@@ -83,7 +83,7 @@ export class ProjectPage extends React.Component<Props, State> {
 
 
     handleProjectFiles = async () => {
-        await axios.get(`${BASE_URL}/${API_URL}/files/1/${this.state.project?.projectId}`)
+        await axios.get(`/${API_URL}/files/1/${this.state.project?.projectId}`)
             .then(res => {
                 this.setState(prevState => ({
                     ...prevState,
@@ -94,8 +94,8 @@ export class ProjectPage extends React.Component<Props, State> {
                 console.error(err);
             });
 
-            if(this.state.dbFiles.length === 0) {
-                await axios.post(`${BASE_URL}/${API_URL}/file`, {
+            if(this.state.dbFiles.length === 0 && this.state.project?.projectId !== 'templates' && this.state.project?.projectId !== 'kamelets') {
+                await axios.post(`/${API_URL}/file`, {
                     name: this.state.files[0].name,
                     code: this.state.files[0].code,
                     projectId: this.state.project?.projectId,
@@ -194,7 +194,7 @@ export class ProjectPage extends React.Component<Props, State> {
     }
 
     postCode = async (file: any) => {
-        axios.put(`${BASE_URL}/${API_URL}/file`, {
+        axios.put(`/${API_URL}/file`, {
             userId: 1,
             projectId: file?.projectId,
             name: file?.name,
@@ -318,7 +318,7 @@ export class ProjectPage extends React.Component<Props, State> {
 
     deleteProjectFile = async() => {
         if (this.state.fileToDelete) {
-            await axios.delete(`${BASE_URL}/${API_URL}/file/1/${this.state.fileToDelete.projectId}/${this.state.fileToDelete.name}`)
+            await axios.delete(`/${API_URL}/file/1/${this.state.fileToDelete.projectId}/${this.state.fileToDelete.name}`)
             .then(res => {
                 if (res.status === 204) {
                     console.log("deleted");
@@ -491,7 +491,7 @@ export class ProjectPage extends React.Component<Props, State> {
             <FlexItem>
                 {isBuildIn &&
                     <PageSection padding={{default: "padding"}}>
-                        {tab === 'development' && <ProjectFilesTable files={files}
+                        {tab === 'development' && <ProjectFilesTable files={this.state.dbFiles}
                                                                      onOpenDeleteConfirmation={this.openDeleteConfirmation}
                                                                      onSelect={this.select}/>}
                     </PageSection>
