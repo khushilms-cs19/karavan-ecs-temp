@@ -17,7 +17,7 @@ public class ProjectFile {
     String projectId;
     @ProtoField(number = 4)
     Long lastUpdate;
-    String userId;
+    String userId; //additional field userId for data
 
     @ProtoFactory
     public ProjectFile(String name, String code, String projectId, Long lastUpdate) {
@@ -27,6 +27,9 @@ public class ProjectFile {
         this.lastUpdate = lastUpdate;
     }
 
+    /*
+    * New constructor created for introduction of new userId
+    * */
     public ProjectFile(String name, String code, String projectId, Long lastUpdate, String userId) {
         this.name = name;
         this.code = code;
@@ -70,6 +73,9 @@ public class ProjectFile {
         this.lastUpdate = lastUpdate;
     }
 
+    /*
+    UserId getter and setters added
+     */
     public String getUserId() { return userId; }
 
     public void setUserId(String userId) { this.userId = userId; }

@@ -52,7 +52,9 @@ public class KaravanService {
         LOGGER.info("Start Karavan");
         infinispanService.start();
         infinispanService.clearAllStatuses();
+        // Setting up mongo service
         mongoService.start();
+        //mongo service set up
         setEnvironment();
         initialImport();
         startInformers();

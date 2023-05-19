@@ -25,7 +25,7 @@ public class Project {
     @ProtoField(number = 6)
     Long lastCommitTimestamp;
 
-    String userId;
+    String userId; //additional field userId for data
 
 
     @ProtoFactory
@@ -38,6 +38,9 @@ public class Project {
         this.lastCommitTimestamp = lastCommitTimestamp;
     }
 
+    /*
+     * New constructor created for introduction of new userId
+     * */
     public Project(String projectId, String name, String description, String runtime, String userId) {
         this.projectId = projectId;
         this.name = name;
@@ -98,6 +101,9 @@ public class Project {
         this.lastCommitTimestamp = lastCommitTimestamp;
     }
 
+    /*
+    UserId getter and setters added
+     */
     public String getUserId() { return userId; }
 
     public void setUserId(String userId) { this.userId = userId; }
