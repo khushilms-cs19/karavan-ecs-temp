@@ -194,7 +194,7 @@ export class Main extends React.Component<Props, State> {
             </FlexItem>
             {
                 pages.map(page =>
-                    <Link key={page.pageId} to={`/${page.pageId}`} style={{ textDecoration: 'none', color:'black' }}  >
+                    <Link key={page.pageId} to={`/${page.pageId}`} style={{ textDecoration: 'none', color:'black' }} onClick={()=> this.setShowMenuModal(false)}  >
                     <Flex key={page.pageId} direction={{ default: "column" }} alignItems={{ default: "alignItemsCenter" }} style={{cursor:"pointer"}}>
                         <FlexItem alignSelf={{ default: "alignSelfFlexStart" }}
                             className={this.state.pageId === page.pageId ? "menubar-button-selected" : ""}

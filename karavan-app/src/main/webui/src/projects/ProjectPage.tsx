@@ -540,7 +540,15 @@ export class ProjectPage extends React.Component<Props, State> {
             ? (this.isKameletsProject() ? ['KAMELET'] : ['CODE', 'PROPERTIES'])
             : ProjectFileTypes.filter(p => !['PROPERTIES', 'LOG', 'KAMELET'].includes(p.name)).map(p => p.name);
         return (
-            <PageSection key={key} className="kamelet-section project-page" padding={{default: 'noPadding'}} style={{height:'100vh'}}>
+            <PageSection key={key} className="kamelet-section project-page" padding={{default: 'noPadding'}} style={{height:'100vh'}} onKeyPress={(event)=>{
+                if(event.key === 'Enter' && isDeleteModalOpen){
+                    this.delete()
+                }
+
+                if(event.key === 'Enter' && isCreateModalOpen){
+                    event.preventDefault();
+                }
+            }}  >
                 <PageSection className="tools-section" padding={{default: 'noPadding'}}>
                     <MainToolbar title={this.title()} tools={this.tools()}/>
                 </PageSection>

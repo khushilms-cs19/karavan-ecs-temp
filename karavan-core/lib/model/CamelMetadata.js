@@ -1479,6 +1479,7 @@ exports.CamelModelMetadata = [
         new PropertyMeta('description', 'Description', "Sets the description of this node", 'string', '', '', false, false, false, false, '', ''),
     ]),
     new ElementMeta('bean', 'BeanDefinition', 'Bean', "Calls a Java bean", 'eip,endpoint', [
+        new PropertyMeta('className', 'Class Name', 'Sets the class name for which the bean will be created', 'string', '', '', false, false, false, false, '', ''),
         new PropertyMeta('ref', 'Ref', "Sets a reference to an exiting bean to use, which is looked up from the registry", 'string', '', '', false, false, false, false, '', ''),
         new PropertyMeta('method', 'Method', "Sets the method name on the bean to use", 'string', '', '', false, false, false, false, '', ''),
         new PropertyMeta('beanType', 'Bean Type', "Sets the class name (fully qualified) of the bean to use", 'string', '', '', false, false, false, false, '', ''),

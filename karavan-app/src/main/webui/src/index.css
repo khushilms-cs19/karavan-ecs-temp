@@ -12,30 +12,29 @@
 
 @font-face{
   font-family:'McKinsey-Sans-Regular';
-  src:url('https://cdn.mckinsey.com/assets/fonts/web/McKinseySans-Regular.woff');
+  src: url('../public/Fonts/McKinseySansTT-Regular.ttf') format("truetype");
 }
 
 @font-face {
   font-family: "Mckinsey-Sans-MediumItalic";
-  src: url('https://cdn.mckinsey.com/assets/fonts/web/McKinseySans-Medium-Italic.woff') format("woff");
+  src: url('../public/Fonts/McKinseySansTT-MediumItalic.ttf') format("truetype");
 }
 
 @font-face {
   font-family: "Mckinsey-Sans-Medium";
-  src: url('https://cdn.mckinsey.com/assets/fonts/web/McKinseySans-Medium.woff') format("woff");
+  src: url('../public/Fonts/McKinseySansTT-Medium.ttf') format("truetype");
 }
 @font-face {
   font-family: "Mckinsey-Sans-Italic";
-  src: url('https://cdn.mckinsey.com/assets/fonts/web/McKinseySans-Italic.woff') format("woff");
+  src: url('../public/Fonts/McKinseySansTT-Italic.ttf') format("truetype");
 }
 @font-face {
   font-family: "Mckisney-Sans-LightItalic";
-  src: url('https://cdn.mckinsey.com/assets/fonts/web/McKinseySans-Light-Italic.woff')
-    format("woff");
+  src: url('../public/Fonts/McKinseySansTT-LightItalic.ttf') format("truetype");
 }
 @font-face {
   font-family: "Mckinsey-Sans-Light";
-  src: url('https://cdn.mckinsey.com/assets/fonts/web/McKinseySans-Light.woff') format("woff");
+  src: url('../public/Fonts/McKinseySansTT-Light.ttf') format("truetype");
 }
 
 

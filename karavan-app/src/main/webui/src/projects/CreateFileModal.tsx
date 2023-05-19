@@ -60,8 +60,8 @@ export class CreateFileModal extends React.Component<Props, State> {
         await this.sendProjectFile();
         const extension = ProjectFileTypes.filter(value => value.name === fileType)[0].extension;
         const filename = (extension !== 'java') ? CamelUi.nameFromTitle(name) : CamelUi.javaNameFromTitle(name);
-        const code = fileType === 'INTEGRATION'
-            ? CamelDefinitionYaml.integrationToYaml(Integration.createNew(name, 'plain'))
+        const code = fileType === 'INTEGRATION' || fileType === 'KAMELET'
+            ? CamelDefinitionYaml.integrationToYaml(Integration.createNew(name, 'crd'))
             : '';
         if (filename && extension) {
             const file = new ProjectFile(filename + '.' + extension, this.props.project.projectId, code, Date.now());
@@ -90,8 +90,14 @@ export class CreateFileModal extends React.Component<Props, State> {
                 variant={ModalVariant.small}
                 isOpen={this.props.isOpen}
                 onClose={this.closeModal}
+                onKeyDown={(event) => {
+                    if(event.key === 'Enter'){
+                        this.state.name.length > 0 ? this.saveAndCloseModal() : event.preventDefault();
+                    }
+
+                }}
                 actions={[
-                    <Button key="confirm" variant="primary" onClick={this.saveAndCloseModal}>Save</Button>,
+                    <Button key="confirm" variant="primary" isDisabled={this.state.name.length <= 0} onClick={this.saveAndCloseModal}>Save</Button>,
                     <Button key="cancel" variant="secondary" onClick={this.closeModal}>Cancel</Button>
                 ]}
             >

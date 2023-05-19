@@ -76,7 +76,6 @@ export class IntegrationTools extends React.Component<Props, State> {
   onChange = (value: string) => {
     this.setState({ value });
   };
-
   componentDidMount() {
     const labels: [string, number][] = CamelUi.getSelectorModelTypes(this.state.parentDsl, this.props.showSteps);
     labels.forEach((label: [string, number]) => {
