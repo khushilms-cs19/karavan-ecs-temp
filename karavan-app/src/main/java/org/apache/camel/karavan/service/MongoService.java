@@ -5,7 +5,11 @@ import com.mongodb.*;
 import com.mongodb.client.*;
 import org.apache.camel.karavan.model.Project;
 import org.apache.camel.karavan.model.ProjectFile;
+import org.apache.camel.karavan.model.User;
+import org.apache.commons.configuration.ConfigurationException;
+import org.apache.commons.configuration.PropertiesConfiguration;
 import org.bson.Document;
+
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import java.util.ArrayList;
@@ -22,8 +26,12 @@ public class MongoService {
 
     private MongoDatabase database = null;
 
-    void start() {
-        String connectionString = "mongodb+srv://shivam:shivam@cluster.c2hhhfm.mongodb.net/?retryWrites=true&w=majority";
+    void start() throws ConfigurationException {
+        PropertiesConfiguration configuration = new PropertiesConfiguration();
+        configuration.load("application.properties");
+        String connectionString = "mongodb+srv://" + configuration.getString("mongo.username") + ":" +
+                configuration.getString("mongo.password") + "@" + configuration.getString("mongo.url");
+        System.out.println("Connection String :: " + connectionString);
         ServerApi serverApi = ServerApi.builder()
                 .version(ServerApiVersion.V1)
                 .build();
@@ -44,15 +52,16 @@ public class MongoService {
      * The given method will check if the user exists in the DB, If it doesn't
      * it will create the user and return it with the details that exist for that user in DB
      * */
-    public List<Document> login(String userId) {
-        List<Document> user = null;
-        Document query = new Document("userId", userId);
-        user = database.getCollection("user").find(query).into(new ArrayList<>());
-        if (user.size() == 0) {
-            database.getCollection("user").insertOne(query);
+    public List<Document> login(User user) {
+        List<Document> dbUser = null;
+        Document query = new Document("userId", user.getUserId());
+        dbUser = database.getCollection("user").find(query).into(new ArrayList<>());
+        if (dbUser.size() == 0) {
+            Document insertUser = new Document("userId", user.getUserId()).append("name", user.getName());
+            database.getCollection("user").insertOne(insertUser);
             return database.getCollection("user").find(query).into(new ArrayList<>());
         }
-        return user;
+        return dbUser;
     }
 
 
@@ -67,10 +76,11 @@ public class MongoService {
         database.getCollection("projects").insertOne(projectDocument);
         return project;
     }
+
     /*
-    * The following method will create a new file
-    * for a specific project owned by a specific user
-    * */
+     * The following method will create a new file
+     * for a specific project owned by a specific user
+     * */
     public ProjectFile createFile(ProjectFile file) {
         Gson gson = new Gson();
         String projectJson = gson.toJson(file);
@@ -80,18 +90,18 @@ public class MongoService {
     }
 
     /*
-    * The following method will get all the projects that are owned
-    * by a user
-    * */
+     * The following method will get all the projects that are owned
+     * by a user
+     * */
     public List<Document> getProjects(String userId) {
         Document query = new Document("userId", userId);
         return database.getCollection("projects").find(query).into(new ArrayList<>());
     }
 
     /*
-    * The method will get all the project files that are owned by a user in
-    * a specific project
-    * */
+     * The method will get all the project files that are owned by a user in
+     * a specific project
+     * */
     public List<Document> getProjectFiles(String userId, String projectId) {
         Document query = new Document("userId", userId).append("projectId", projectId);
         return database.getCollection("project_files").find(query).into(new ArrayList<>());
@@ -99,18 +109,18 @@ public class MongoService {
 
 
     /*
-    * This method will delete a project file that exist
-    * for a user in a specific project
-    * */
+     * This method will delete a project file that exist
+     * for a user in a specific project
+     * */
     public void deleteFile(String userId, String projectID, String filename) {
         Document query = new Document("userId", userId).append("projectId", projectID).append("name", filename);
         database.getCollection("project_files").deleteOne(query);
     }
 
     /*
-    * This method will delete all the project files and project
-    * for a specific user \
-    * */
+     * This method will delete all the project files and project
+     * for a specific user \
+     * */
     public void deleteProject(String userId, String projectId) {
         Document query = new Document("userId", userId).append("projectId", projectId);
         database.getCollection("project_files").deleteMany(query);
@@ -118,15 +128,15 @@ public class MongoService {
     }
 
     /*
-    * This method will update the code and the last updated
-    * for a project file and will update the last update time for the project
-    * */
+     * This method will update the code and the last updated
+     * for a project file and will update the last update time for the project
+     * */
     public ProjectFile updateFile(ProjectFile file) {
-        Document fileFilter = new Document("userId", file.getUserId()).append("projectId", file.getProjectId()).append("name",file.getName());
-        Document fileUpdate = new Document("$set", new Document("code", file.getCode()).append("lastUpdate",file.getLastUpdate()));
+        Document fileFilter = new Document("userId", file.getUserId()).append("projectId", file.getProjectId()).append("name", file.getName());
+        Document fileUpdate = new Document("$set", new Document("code", file.getCode()).append("lastUpdate", file.getLastUpdate()));
         Document projectFilter = new Document("userId", file.getUserId()).append("projectId", file.getProjectId());
         Document projectUpdate = new Document("$set", new Document("lastCommit", file.getLastUpdate()));
-        database.getCollection("project_files").updateOne(fileFilter,fileUpdate);
+        database.getCollection("project_files").updateOne(fileFilter, fileUpdate);
         database.getCollection("projects").updateOne(projectFilter, projectUpdate);
         return file;
     }

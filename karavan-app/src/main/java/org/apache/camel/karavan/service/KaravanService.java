@@ -20,6 +20,7 @@ import io.quarkus.runtime.ShutdownEvent;
 import io.quarkus.runtime.StartupEvent;
 import io.vertx.core.eventbus.EventBus;
 import org.apache.camel.karavan.model.Environment;
+import org.apache.commons.configuration.ConfigurationException;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.jboss.logging.Logger;
 
@@ -47,7 +48,7 @@ public class KaravanService {
     @ConfigProperty(name = "karavan.environment")
     String environment;
 
-    void onStart(@Observes StartupEvent ev) {
+    void onStart(@Observes StartupEvent ev) throws ConfigurationException {
         LOGGER.info("Start Karavan");
         infinispanService.start();
         infinispanService.clearAllStatuses();

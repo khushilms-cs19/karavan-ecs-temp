@@ -2,6 +2,7 @@ package org.apache.camel.karavan.api;
 
 import org.apache.camel.karavan.model.Project;
 import org.apache.camel.karavan.model.ProjectFile;
+import org.apache.camel.karavan.model.User;
 import org.apache.camel.karavan.service.MongoService;
 import org.bson.Document;
 
@@ -19,10 +20,11 @@ public class MongoResource {
 
     @POST
     @Produces(MediaType.APPLICATION_JSON)
-    @Path("/login/{userId}")
-    public List<Document> login(@PathParam("userId") String userId) {
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/login")
+    public List<Document> login(User user) {
         System.out.println("Calling mongo Service");
-        return mongoService.login(userId);
+        return mongoService.login(user);
     }
 
     @POST
