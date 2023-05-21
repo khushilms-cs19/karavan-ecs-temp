@@ -23,6 +23,16 @@ import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
 import ImageCarousel from './TutorialCarousel';
 import './LandingPage.css';
+import samimImg from '../../resources/Samim.jpg';
+import mehakImg from '../../resources/Mehak.jpg';
+import khushilImg from '../../resources/Khushil.jpg';
+import madhuImg from '../../resources/Madhumilind.jpeg';
+import durgaImg from '../../resources/Durga.jpg';
+import samratImg from '../../resources/Samrat.jpg';
+import sanketImg from '../../resources/Sanket.jpg';
+import shashwathImg from '../../resources/Shashwat.jpg';
+import shivamImg from '../../resources/Shivam.png';
+import ramanImg from '../../resources/Raman.png';
 
 interface Props {}
 
@@ -30,8 +40,71 @@ interface State {}
 
 export class LandingPage extends Component<Props, State> {
   render() {
-    const developers = [ 'Durga P Menon', 'Khushil Sindwad', 'Madhumilind Toraskar', 'Mehak Noor Singh Kang', 
-                        'Samrat Das', 'Samim Hossain Mondal', 'Sanket Shivam', 'Shashwath S K', 'Shivam Mahajan'];
+    const coreTeam = [
+      {
+        name: 'Durga P Menon',
+        img: durgaImg,
+        designation: 'Engineer II,',
+        location: 'Bangalore'
+      },
+      {
+        name: 'Madhumilind Toraskar',
+        img: madhuImg,
+        designation: 'Principal Engineer I,',
+        location: 'Bangalore'
+      },
+      {
+        name: 'Raman RKVS',
+        img: ramanImg,
+        designation: 'Distinguished Software',
+        location: 'Engineer, Bangalore'
+      },
+      {
+        name: 'Samrat Das',
+        img: samratImg,
+        designation: 'Engineer I,',
+        location: 'Bangalore'
+      },
+      {
+        name: 'Sanket Shivam',
+        img: sanketImg,
+        designation: 'Engineer I,',
+        location: 'Gurugram'
+      },
+      {
+        name: 'Shivam Mahajan',
+        img: shivamImg,
+        designation: 'Engineer I,',
+        location: 'Gurugram'
+      },
+    ]
+
+    const internTeam = [
+      {
+        name: 'Khushil Sindwad',
+        img: khushilImg,
+        designation: 'Software Engineer Intern,',
+        location: 'Bangalore'
+      },
+      {
+        name: 'Mehak Noor Singh',
+        img: mehakImg,
+        designation: 'Software Engineer Intern,',
+        location: 'Bangalore'
+      },
+      {
+        name: 'Samim Hossain Mondal',
+        img: samimImg,
+        designation: 'Software Engineer Intern,',
+        location: 'Bangalore'
+      },
+      {
+        name: 'Shashwath S K',
+        img: shashwathImg,
+        designation: 'Software Engineer Intern,',
+        location: 'Bangalore'
+      },
+    ]
 
     const uses = ['Built-in support for service discovery, load balancing, fault tolerance, and routing, eliminating the need for developers to manage the underlying infrastructure complexities',
                         'Highly scalable and reliable, with features such as automatic load balancing and failover, intelligent routing, and support for distributed caching',
@@ -252,22 +325,59 @@ export class LandingPage extends Component<Props, State> {
         </div>
         <div className='lp-footer'>
           <div className='lp-footer-text'>
-            <b>About us</b>
+            <b>Meet the Team</b>
           </div>
-          <div className='lp-footer-developers'>
+          <div className='core-team'>
+            <div>
+              <b>CORE TEAM MEMBERS</b>
+            </div>
+            <div className='team-profiles'>
             {
-            developers.map((developer, index) => {
+            coreTeam.map((member, index) => {
               return (
                 <div className='lp-footer-profile'>
                   <div className='lp-footer-profile-img'>
-                    <img src='https://static-cdn.jtvnw.net/jtv_user_pictures/1d56d2fd-a2d5-4325-a4f7-6152ca7c9029-profile_image-300x300.png' alt="Apache Software Foundation" />
+                    <img src={`${member.img}`} alt="Apache Software Foundation" />
                   </div>
                   <div className='lp-footer-profile-text'>
-                    <b>{developer}</b>
+                    <b>{member.name}</b>
+                    <div className='lp-footer-profile-text-designation'>
+                      <b>{member.designation}</b>
+                    </div>
+                    <div className='lp-footer-profile-text-location'>
+                      <b>{member.location}</b>
+                    </div>
                   </div>
                 </div>
               )})
             }
+            </div>
+          </div>
+          <div className='interns-team'>
+            <div>
+              <b>TECHNOLOGY & INNOVATION OFFICE INTERNS (BATCH OF 2023)</b>
+            </div>
+            <div className='intern-profiles'>
+            {
+            internTeam.map((member, index) => {
+              return (
+                <div className='lp-footer-profile'>
+                  <div className='lp-footer-profile-img'>
+                    <img src={`${member.img}`} alt="Apache Software Foundation" />
+                  </div>
+                  <div className='lp-footer-profile-text'>
+                    <b>{member.name}</b>
+                    <div className='lp-footer-profile-text-designation'>
+                      <b>{member.designation}</b>
+                    </div>
+                    <div className='lp-footer-profile-text-location'>
+                      <b>{member.location}</b>
+                    </div>
+                  </div>
+                </div>
+              )})
+            }
+            </div>
           </div>
         </div>
       </div>
