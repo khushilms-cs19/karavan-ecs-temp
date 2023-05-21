@@ -1,4 +1,4 @@
-.navbar{
+.navbar {
   background-color: var(--mck-deep-blue);
   color: #fff;
   padding: 8px 24px 8px 24px;
@@ -7,33 +7,33 @@
   justify-content: space-between;
 }
 
-a{
+a {
   text-decoration: none;
   color: #fff;
 }
 
-.navbar-heading{
+.navbar-heading {
   display: flex;
   flex-direction: row;
   align-items: center;
   gap: 16px;
 }
 
-.heading-name{
+.heading-name {
   font-size: 1.5rem;
   font-weight: 700;
 }
 
-.heading-div{
+.heading-div {
   font-size: 2rem;
 }
 
-.heading-desc{
+.heading-desc {
   font-size: 1.15rem;
   font-weight: 500;
 }
 
-.navbar-utils{
+.navbar-utils {
   display: flex;
   align-items: center;
   gap: 40px;
@@ -44,8 +44,73 @@ a{
   gap: 8px;
   font-size: 1.15rem;
   cursor: pointer;
+  align-items: center;
 }
 
-.navbar-menu{
+.navbar-menu {
   cursor: pointer;
+}
+
+.account-modal {
+  border: 1px solid whitesmoke;
+  z-index: 1000;
+  min-width: 300px;
+  min-height: 200px;
+  position: absolute;
+  top: 51px;
+  right: 20px;
+  border-radius: 10px;
+  color: black;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  background-color: #292A2D;
+}
+
+.black-bg {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 300px;
+  height: 60px;
+  border-radius: 10px 10px 0 0;
+  background-color: #202124;
+  /* background-color: var(--mck-deep-blue); */
+}
+
+.black-bg .avatar {
+  padding: none;
+}
+
+.account-details {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  color: white;
+  /* color:var(--mck-dark-grey); */
+}
+
+.black-bg .close-icon {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  cursor: pointer;
+}
+
+.account-options {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  color: white;
+}
+
+.account-options .account-option {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  padding: 0;
 }
