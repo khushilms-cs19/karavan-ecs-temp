@@ -21,6 +21,7 @@ import bgModuleImg from '../../resources/bg-module1.svg'
 import Icon from '../../Logo';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faArrowRight } from '@fortawesome/free-solid-svg-icons';
+import ImageCarousel from './TutorialCarousel';
 import './LandingPage.css';
 
 interface Props {}
@@ -124,6 +125,12 @@ export class LandingPage extends Component<Props, State> {
           }
         </div> 
       </div>
+        <div className='tutorial-carousel'>
+          <div className='tutorial-carousel-title'>
+            <b>How it works ?</b>
+          </div>
+          <ImageCarousel />
+        </div>
         <div>
           <div className='lp-genai'>
             <div className='lp-genai-text-box'>

@@ -490,6 +490,25 @@ body {
     margin-right: 1.2rem;
 }
 
+.tutorial-carousel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 25px 150px 25px 150px;
+    margin-top: 25px;
+    background-color: transparent;
+}
+
+.tutorial-carousel-title {
+    margin-bottom: 25px;
+}
+
+.tutorial-carousel-title > b{
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var(--mck-deep-blue);
+}
+
 @media screen and (min-width: 1441px) {
     .lp-content-description{
         margin-top: 20%;
