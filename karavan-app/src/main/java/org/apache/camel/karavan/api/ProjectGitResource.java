@@ -73,8 +73,8 @@ public class ProjectGitResource {
         String repoUri = queryParams.getFirst("repoUri");
         String branch = queryParams.getFirst("branch");
         String projects = queryParams.getFirst("projects");
-        System.out.println("projects"+repoOwner+accessToken+repoUri+branch+projects);
-        projects = "templates,kamelets,gittesting";
+        // System.out.println("projects"+projects);
+        projects = "templates,kamelets,gittesting,test";
         projectService.getProjectsFromGit(repoOwner,accessToken,repoUri,branch,projects);
     }
 }
