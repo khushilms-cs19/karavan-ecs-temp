@@ -16,7 +16,6 @@
  */
 package org.apache.camel.karavan.api;
 
-import org.apache.camel.karavan.model.Project;
 import org.apache.camel.karavan.service.ProjectService;
 
 import javax.inject.Inject;
@@ -24,10 +23,14 @@ import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.POST;
 import javax.ws.rs.Path;
-import javax.ws.rs.PathParam;
 import javax.ws.rs.Produces;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
+
 import java.util.HashMap;
+import java.util.Map;
+import javax.ws.rs.core.Context;
+import javax.ws.rs.core.UriInfo;
 
 @Path("/api/git")
 public class ProjectGitResource {
@@ -38,15 +41,40 @@ public class ProjectGitResource {
     @POST
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    public Project push(HashMap<String, String> params) throws Exception {
-        return projectService.commitAndPushProject(params.get("projectId"), params.get("message"));
+    public Map<String,String> push(HashMap<String, String> params) throws Exception {
+        Map<String,String> result = projectService.commitAndPushProject(params.get("projectId"), params.get("commitMessage"),params.get("userName"),params.get("accessToken"),params.get("repoUri"),params.get("branch"),params.get("file"),params.get("isConflictResolved"),params.get("repoOwner"),params.get("userEmail"));
+        // System.out.println("sending push request"+result.toString());
+         return result;
     }
 
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
-    @Path("/{projectId}")
-    public Project pull(@PathParam("projectId") String projectId) throws Exception {
-        return projectService.importProject(projectId);
+    public Map<String,String> pull(@Context UriInfo uriInfo) throws Exception {
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        String projectId = queryParams.getFirst("projectId");
+        String repoOwner = queryParams.getFirst("repoOwner");
+        String accessToken = queryParams.getFirst("accessToken");
+        String repoUri = queryParams.getFirst("repoUri");
+        String branch = queryParams.getFirst("branch");
+       
+        return projectService.pullProject(projectId,repoOwner,accessToken,repoUri,branch);
+        // return projectService.pullProject("gittesting","shashwath-sk","a","https://github.com/shashwath-sk/karavan-minikube-poc.git","main");
+    }
+
+    @GET
+    @Path("/projects")
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    public void getProjectsFromGit(@Context UriInfo uriInfo) throws Exception {
+        MultivaluedMap<String, String> queryParams = uriInfo.getQueryParameters();
+        String repoOwner = queryParams.getFirst("repoOwner");
+        String accessToken = queryParams.getFirst("accessToken");
+        String repoUri = queryParams.getFirst("repoUri");
+        String branch = queryParams.getFirst("branch");
+        String projects = queryParams.getFirst("projects");
+        System.out.println("projects"+repoOwner+accessToken+repoUri+branch+projects);
+        projects = "templates,kamelets,gittesting";
+        projectService.getProjectsFromGit(repoOwner,accessToken,repoUri,branch,projects);
     }
 }

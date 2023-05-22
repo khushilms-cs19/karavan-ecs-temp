@@ -1,12 +1,11 @@
 import React from 'react';
-import axios from 'axios';
 import {
     Button,
     Modal,
     FormGroup,
     ModalVariant,
     Form,
-    ToggleGroupItem, ToggleGroup, FormHelperText, HelperText, HelperTextItem, TextInput
+    ToggleGroupItem, ToggleGroup, TextInputGroupMain, TextInputGroupUtilities, TextInputGroup, Text, FormHelperText, HelperText, HelperTextItem, TextInput
 } from '@patternfly/react-core';
 import '../designer/karavan.css';
 import {KaravanApi} from "../api/KaravanApi";
@@ -14,14 +13,12 @@ import {Project, ProjectFile, ProjectFileTypes} from "./ProjectModels";
 import {CamelUi} from "../designer/utils/CamelUi";
 import {Integration} from "karavan-core/lib/model/IntegrationDefinition";
 import {CamelDefinitionYaml} from "karavan-core/lib/api/CamelDefinitionYaml";
-import { API_URL } from '../constants/mongoAPIs';
 
 interface Props {
     isOpen: boolean,
     project: Project,
     onClose: any,
     types: string[]
-    handleProjectFiles: any
 }
 
 interface State {
@@ -40,28 +37,12 @@ export class CreateFileModal extends React.Component<Props, State> {
         this.props.onClose?.call(this);
     }
 
-    sendProjectFile = async () => {
+    saveAndCloseModal = () => {
         const {name, fileType} = this.state;
-        const extension = ProjectFileTypes.filter(value => value.name === fileType)[0].extension;
-        await axios.post(`/${API_URL}/file`, {
-            name: name+'.'+extension,
-            projectId: this.props.project.projectId,
-            code: '',
-            lastUpdate: Date.now(),
-            userId: 1,
-        }).then(res => {
-            console.log(res);
-        })
-    }
-
-    saveAndCloseModal = async () => {
-        const {name, fileType} = this.state;
-        await this.props.handleProjectFiles();
-        await this.sendProjectFile();
         const extension = ProjectFileTypes.filter(value => value.name === fileType)[0].extension;
         const filename = (extension !== 'java') ? CamelUi.nameFromTitle(name) : CamelUi.javaNameFromTitle(name);
-        const code = fileType === 'INTEGRATION' || fileType === 'KAMELET'
-            ? CamelDefinitionYaml.integrationToYaml(Integration.createNew(name, 'crd'))
+        const code = fileType === 'INTEGRATION'
+            ? CamelDefinitionYaml.integrationToYaml(Integration.createNew(name, 'plain'))
             : '';
         if (filename && extension) {
             const file = new ProjectFile(filename + '.' + extension, this.props.project.projectId, code, Date.now());
@@ -90,14 +71,8 @@ export class CreateFileModal extends React.Component<Props, State> {
                 variant={ModalVariant.small}
                 isOpen={this.props.isOpen}
                 onClose={this.closeModal}
-                onKeyDown={(event) => {
-                    if(event.key === 'Enter'){
-                        this.state.name.length > 0 ? this.saveAndCloseModal() : event.preventDefault();
-                    }
-
-                }}
                 actions={[
-                    <Button key="confirm" variant="primary" isDisabled={this.state.name.length <= 0} onClick={this.saveAndCloseModal}>Save</Button>,
+                    <Button key="confirm" variant="primary" onClick={this.saveAndCloseModal}>Save</Button>,
                     <Button key="cancel" variant="secondary" onClick={this.closeModal}>Cancel</Button>
                 ]}
             >
