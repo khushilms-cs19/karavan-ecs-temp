@@ -1,4 +1,5 @@
 import React from 'react';
+import axios from 'axios';
 import {
     Alert,
     Toolbar,
@@ -18,29 +19,33 @@ import {
     EmptyStateVariant,
     EmptyStateIcon,
     Title,
-    Radio, Spinner, Flex, FlexItem, TextInputGroup, Switch
+    Radio, Spinner, FlexItem, Flex, TextInputGroup, Switch
 } from '@patternfly/react-core';
 import '../designer/karavan.css';
-import {MainToolbar} from "../MainToolbar";
+import { MainToolbar } from "../MainToolbar";
 import RefreshIcon from '@patternfly/react-icons/dist/esm/icons/sync-alt-icon';
 import PlusIcon from '@patternfly/react-icons/dist/esm/icons/plus-icon';
-import {DeploymentStatus, Project, PipelineStatus} from "./ProjectModels";
-import {TableComposable, Tbody, Td, Th, Thead, Tr} from "@patternfly/react-table";
+import { DeploymentStatus, Project, PipelineStatus } from "./ProjectModels";
+import { TableComposable, Tbody, Td, Th, Thead, Tr } from "@patternfly/react-table";
 import SearchIcon from '@patternfly/react-icons/dist/esm/icons/search-icon';
 import {CamelUi} from "../designer/utils/CamelUi";
 import {KaravanApi} from "../api/KaravanApi";
 import {QuarkusIcon, SpringIcon} from "../designer/utils/KaravanIcons";
 import {CamelUtil} from "karavan-core/lib/api/CamelUtil";
 import {ProjectsTableRow} from "./ProjectsTableRow";
+import { API_URL } from '../constants/mongoAPIs';
 import { StorageApi } from '../api/StorageApi';
+
 
 interface Props {
     config: any,
     onSelect: (project: Project) => void
     toast: (title: string, text: string, variant: 'success' | 'danger' | 'warning' | 'info' | 'default') => void
 }
+
 interface State {
     projects: Project[],
+    allProjects: Project[],
     deploymentStatuses: DeploymentStatus[],
     isCreateModalOpen: boolean,
     isDeleteModalOpen: boolean,
@@ -67,6 +72,7 @@ export class ProjectsPage extends React.Component<Props, State> {
 
     public state: State = {
         projects: [],
+        allProjects: [],
         deploymentStatuses: [],
         isCreateModalOpen: false,
         isDeleteModalOpen: false,
@@ -88,8 +94,9 @@ export class ProjectsPage extends React.Component<Props, State> {
     };
     interval: any;
 
-    componentDidMount() {
-        this.interval = setInterval(() => this.onGetProjects(), 1300);
+    componentDidMount () {
+        this.interval = setInterval(() => this.fetchAllProjects(), 5000);
+        this.fetchAllProjects();
         const githubParams = StorageApi.getGithubParameters();
         if (githubParams) {
             this.setState({
@@ -98,6 +105,12 @@ export class ProjectsPage extends React.Component<Props, State> {
                 repoUri: githubParams.repoUri,
                 branch: githubParams.branch,
             });
+        }
+    }
+
+    componentDidUpdate(prevProps: Readonly<Props>, prevState: Readonly<State>, snapshot?: any): void {
+        if((prevState.isCreateModalOpen !== this.state.isCreateModalOpen) || (prevState.isDeleteModalOpen !== this.state.isDeleteModalOpen)) {
+            this.fetchAllProjects();
         }
     }
 
@@ -123,8 +136,9 @@ export class ProjectsPage extends React.Component<Props, State> {
     };
 
 
-    deleteProject = () => {
-        if (this.state.projectToDelete)
+    deleteProject = async () => {
+        if (this.state.projectToDelete){
+            await axios.delete(`/${API_URL}/project/1/${this.state.projectToDelete.name}`)
             KaravanApi.deleteProject(this.state.projectToDelete, res => {
                 if (res.status === 204) {
                     this.props.toast?.call(this, "Success", "Project deleted", "success");
@@ -133,6 +147,7 @@ export class ProjectsPage extends React.Component<Props, State> {
                     this.props.toast?.call(this, "Error", res.statusText, "danger");
                 }
             });
+        }
         this.setState({isDeleteModalOpen: false})
     }
 
@@ -147,29 +162,37 @@ export class ProjectsPage extends React.Component<Props, State> {
         });
     };
 
+    fetchAllProjects = async() => {
+        await axios.get(`/${API_URL}/projects/1`)
+            .then(res => {
+                const projects = res.data;
+                this.setState({ allProjects: projects });
+            })
+    }
+
     onGetProjects = () => {
-        this.setState({loading: true});
+        this.setState({ loading: true });
         KaravanApi.getProjects((projects: Project[]) => {
-            this.setState({projects: projects, loading: false})
+            this.setState({ projects: projects, loading: false })
         });
         KaravanApi.getDeploymentStatuses(this.props.config.environment, (statuses: DeploymentStatus[]) => {
-            this.setState({deploymentStatuses: statuses});
+            this.setState({ deploymentStatuses: statuses });
         });
     }
 
     tools = () => (<Toolbar id="toolbar-group-types">
         <ToolbarContent>
             <ToolbarItem>
-                <Button variant="link" icon={<RefreshIcon/>} onClick={e => this.onGetProjects()}/>
+                <Button variant="link" icon={<RefreshIcon />} onClick={e => this.onGetProjects()} />
             </ToolbarItem>
             <ToolbarItem>
                 <TextInput className="text-field" type="search" id="search" name="search"
-                           autoComplete="off" placeholder="Search by name"
-                           value={this.state.filter}
-                           onChange={e => this.setState({filter: e})}/>
+                    autoComplete="off" placeholder="Search by name"
+                    value={this.state.filter}
+                    onChange={e => this.setState({ filter: e })} />
             </ToolbarItem>
             <ToolbarItem>
-                <Button icon={<PlusIcon/>} onClick={e => this.setState({isCreateModalOpen: true, isCopy: false})}>Create</Button>
+                <Button icon={<PlusIcon />} onClick={e => this.setState({ isCreateModalOpen: true, isCopy: false })}>Create</Button>
                 <Button icon={<PlusIcon/>} onClick={e => this.setState({isUploadModalOpen: true, isCopy: false})}>Upload</Button>
             </ToolbarItem>
         </ToolbarContent>
@@ -180,15 +203,33 @@ export class ProjectsPage extends React.Component<Props, State> {
     </TextContent>);
 
     closeModal = () => {
-        this.setState({isCreateModalOpen: false, isCopy: false, name: this.props.config.groupId, description: '', projectId: '', runtime: this.props.config.runtime});
+        this.setState({ isCreateModalOpen: false, isCopy: false, name: this.props.config.groupId, description: '', projectId: '', runtime: this.props.config.runtime });
         this.onGetProjects();
     }
 
-    saveAndCloseCreateModal = () => {
+    sendProjectDetails = async () => {
         const {name, description, projectId, runtime} = this.state;
+        await axios.post(`/${API_URL}/project`, {
+            name: name,
+            description: description,
+            projectId: projectId,
+            runtime: runtime,
+            lastCommit: '',
+            userId: 1
+        })
+            .then((response) => {
+                console.log(response);
+            }, (error) => {
+                console.log(error);
+            });
+    }
+
+    saveAndCloseCreateModal = async () => {
+        const {name, description, projectId, runtime} = this.state;
+        await this.sendProjectDetails();
         const p = new Project(projectId, name, description, runtime, '');
         this.onProjectCreate(p);
-        this.setState({isCreateModalOpen: false, isCopy: false, name: this.props.config.groupId, description: '', projectId: ''});
+        this.setState({ isCreateModalOpen: false, isCopy: false, name: this.props.config.groupId, description: '', projectId: '' });
     }
 
     onKeyDown = (event: React.KeyboardEvent<HTMLDivElement>): void => {
@@ -228,7 +269,7 @@ export class ProjectsPage extends React.Component<Props, State> {
                 userEmail: ''
             })
         }
-        KaravanApi.uploadFromGit(githubParams, res => {
+        KaravanApi.uploadFromGit(params, res => {
             if (res.status === 200 || res.status === 201) {
                 this.setState({isUploading: false});
                 // if(res.data && res.data.isConflictPresent){
@@ -252,8 +293,8 @@ export class ProjectsPage extends React.Component<Props, State> {
     }
 
     createModalForm() {
-        const {isCopy, projectToCopy, projectId, name, isCreateModalOpen, description, runtime} = this.state;
-        const {runtimes} = this.props.config;
+        const { isCopy, projectToCopy, projectId, name, isCreateModalOpen, description, runtime } = this.state;
+        const { runtimes } = this.props.config;
         const isReady = projectId && name && description && !['templates', 'kamelets'].includes(projectId);
         return (
             <Modal
@@ -271,32 +312,32 @@ export class ProjectsPage extends React.Component<Props, State> {
                 <Form isHorizontal={true} autoComplete="off">
                     <FormGroup label="Name" fieldId="name" isRequired>
                         <TextInput className="text-field" type="text" id="name" name="name"
-                                   value={name}
-                                   onChange={e => this.setState({name: e})}/>
+                            value={name}
+                            onChange={e => this.setState({ name: e })} />
                     </FormGroup>
                     <FormGroup label="Description" fieldId="description" isRequired>
                         <TextInput className="text-field" type="text" id="description" name="description"
-                                   value={description}
-                                   onChange={e => this.setState({description: e})}/>
+                            value={description}
+                            onChange={e => this.setState({ description: e })} />
                     </FormGroup>
                     <FormGroup label="Project ID" fieldId="projectId" isRequired helperText="Unique project name">
                         <TextInput className="text-field" type="text" id="projectId" name="projectId"
-                                   value={projectId}
-                                   onFocus={e => this.setState({projectId: projectId === '' ? CamelUi.nameFromTitle(name) : projectId})}
-                                   onChange={e => this.setState({projectId: CamelUi.nameFromTitle(e)})}/>
+                            value={projectId}
+                            onFocus={e => this.setState({ projectId: projectId === '' ? CamelUi.nameFromTitle(name) : projectId })}
+                            onChange={e => this.setState({ projectId: CamelUi.nameFromTitle(e) })} />
                     </FormGroup>
                     <FormGroup label="Runtime" fieldId="runtime" isRequired>
                         {runtimes?.map((r: string) => (
                             <Radio key={r} id={r} name={r} className="radio"
-                                   isChecked={r === runtime}
-                                   onChange={checked => {
-                                       if (checked) this.setState({runtime: r})
-                                   }}
-                                   body={
-                                       <div className="runtime-radio">
-                                           {r === 'quarkus' ? QuarkusIcon() : SpringIcon()}
-                                           <div className="runtime-label">{CamelUtil.capitalizeName(r)}</div>
-                                       </div>}
+                                isChecked={r === runtime}
+                                onChange={checked => {
+                                    if (checked) this.setState({ runtime: r })
+                                }}
+                                body={
+                                    <div className="runtime-radio">
+                                        {r === 'quarkus' ? QuarkusIcon() : SpringIcon()}
+                                        <div className="runtime-label">{CamelUtil.capitalizeName(r)}</div>
+                                    </div>}
                             />
                         ))}
                     </FormGroup>
@@ -305,7 +346,7 @@ export class ProjectsPage extends React.Component<Props, State> {
         )
     }
 
-    uploadModalForm() {
+        uploadModalForm() {
         const {accessToken,repoUri,branch,repoOwner,isUploading,isUploadModalOpen,saveUserDetails} = this.state;
         const isUploadEnabled = !isUploading&&accessToken && repoUri && branch && repoOwner;
         return (
@@ -349,7 +390,10 @@ export class ProjectsPage extends React.Component<Props, State> {
 
     deleteModalForm() {
         return (
-            <div>
+            <div onKeyPress={(event) => {
+                if (event.key === 'Enter' && this.state.isDeleteModalOpen)
+                    this.deleteProject();
+            }}>
                 {(this.state.isDeleteModalOpen === true) && <Modal
                     title="Confirmation"
                     variant={ModalVariant.small}
@@ -382,21 +426,20 @@ export class ProjectsPage extends React.Component<Props, State> {
         )
     }
 
-    getEnvironments(): string [] {
+    getEnvironments(): string[] {
         return this.props.config.environments && Array.isArray(this.props.config.environments) ? Array.from(this.props.config.environments) : [];
     }
 
-
     getEmptyState() {
-        const {loading} = this.state;
+        const { loading } = this.state;
         return (
             <Tr>
                 <Td colSpan={8}>
                     <Bullseye>
-                        {loading && <Spinner className="progress-stepper" isSVG diameter="80px" aria-label="Loading..."/>}
+                        {loading && <Spinner className="progress-stepper" isSVG diameter="80px" aria-label="Loading..." />}
                         {!loading &&
                             <EmptyState variant={EmptyStateVariant.small}>
-                                <EmptyStateIcon icon={SearchIcon}/>
+                                <EmptyStateIcon icon={SearchIcon} />
                                 <Title headingLevel="h2" size="lg">
                                     No results found
                                 </Title>
@@ -410,8 +453,9 @@ export class ProjectsPage extends React.Component<Props, State> {
 
 
     getProjectsTable() {
-        const {projects, filter} = this.state;
+        const {projects, filter, allProjects} = this.state;
         const projs = projects.filter(p => p.name.toLowerCase().includes(filter) || p.description.toLowerCase().includes(filter));
+        const allProjs = allProjects.filter(p => p.name.toLowerCase().includes(filter) || p.description.toLowerCase().includes(filter));
         return (
             <TableComposable aria-label="Projects" variant={"compact"}>
                 <Thead>
@@ -426,17 +470,17 @@ export class ProjectsPage extends React.Component<Props, State> {
                     </Tr>
                 </Thead>
                 <Tbody>
-                    {projs.map(project => (
+                    {allProjs.map(project => (
                         <ProjectsTableRow
                             key={project.projectId}
                             config={this.props.config}
                             onSelect={this.props.onSelect}
                             onProjectDelete={this.onProjectDelete}
-                            onProjectCopy={project1 => this.setState({isCreateModalOpen: true, isCopy: true, projectToCopy: project1})}
+                            onProjectCopy={project1 => this.setState({ isCreateModalOpen: true, isCopy: true, projectToCopy: project1 })}
                             project={project}
-                            deploymentStatuses={this.state.deploymentStatuses}/>
+                            deploymentStatuses={this.state.deploymentStatuses} />
                     ))}
-                    {projs.length === 0 && this.getEmptyState()}
+                    {allProjs.length === 0 && this.getEmptyState()}
                 </Tbody>
             </TableComposable>
         )
@@ -444,9 +488,9 @@ export class ProjectsPage extends React.Component<Props, State> {
 
     render() {
         return (
-            <PageSection className="kamelet-section projects-page" padding={{default: 'noPadding'}}>
-                <PageSection className="tools-section" padding={{default: 'noPadding'}}>
-                    <MainToolbar title={this.title()} tools={this.tools()}/>
+            <PageSection className="kamelet-section projects-page" padding={{ default: 'noPadding' }} style={{ minHeight: '100vh' }} >
+                <PageSection className="tools-section" padding={{ default: 'noPadding' }}>
+                    <MainToolbar title={this.title()} tools={this.tools()} />
                 </PageSection>
                 <PageSection isFilled className="kamelets-page">
                     {this.getProjectsTable()}
