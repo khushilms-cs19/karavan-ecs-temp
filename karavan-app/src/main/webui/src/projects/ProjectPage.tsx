@@ -574,7 +574,7 @@ export class ProjectPage extends React.Component<Props, State> {
                     onEscapePress={e => this.setState({isDeleteModalOpen: false})}>
                     <div>{"Are you sure you want to delete the file " + fileToDelete?.name + "?"}</div>
                 </Modal>
-                <UploadModal projectId={project.projectId} isOpen={isUploadModalOpen} onClose={this.closeModal}/>
+                <UploadModal projectId={project.projectId} isOpen={isUploadModalOpen} onClose={this.closeModal} handleProjectFiles={this.handleProjectFiles}/>
             </PageSection>
         )
     }
