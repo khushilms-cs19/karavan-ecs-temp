@@ -6,11 +6,13 @@ import {
 import '../designer/karavan.css';
 import {KaravanApi} from "../api/KaravanApi";
 import {ProjectFile} from "./ProjectModels";
+import axios from 'axios';
 
 interface Props {
     projectId: string,
     isOpen: boolean,
-    onClose: any
+    onClose: any,
+    handleProjectFiles: any
 }
 
 interface State {
@@ -34,16 +36,23 @@ export class UploadModal extends React.Component<Props, State> {
         isLoading: false,
         isRejected: false,
         generateRest: true,
-        generateRoutes: true
+        generateRoutes: true,
     };
 
     closeModal = () => {
         this.props.onClose?.call(this);
     }
 
-    saveAndCloseModal = () => {
+    saveAndCloseModal = async () => {
         const state = this.state;
         const file = new ProjectFile(state.filename, this.props.projectId, state.data, Date.now());
+        await axios.post('/mongo/file',{
+            name: file.name,
+            projectId: file.projectId,
+            code: file.code,
+            lastUpdate: file.lastUpdate,
+            userId: '1'
+        })
         if (this.state.type === "integration"){
             KaravanApi.postProjectFile(file, res => {
                 if (res.status === 200) {
@@ -65,6 +74,7 @@ export class UploadModal extends React.Component<Props, State> {
                 }
             })
         }
+        await this.props.handleProjectFiles();
     }
 
     handleFileInputChange = (event: React.ChangeEvent<HTMLInputElement> | React.DragEvent<HTMLElement>, file: File) => this.setState({filename: file.name});
