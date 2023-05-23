@@ -140,4 +140,25 @@ public class MongoService {
         database.getCollection("projects").updateOne(projectFilter, projectUpdate);
         return file;
     }
+
+    /*
+     * This method will update the project name and the last updated
+     * for a project and will update the last update time for the project
+     * */
+    public Project updateProject(Project project,String userId) {
+        Document projectFilter = new Document("userId", userId).append("projectId", project.getProjectId());
+        Document projectUpdate = new Document("$set", new Document("name", project.getName()).append("lastCommit", project.getLastCommit()).append("lastCommitTimestamp", project.getLastCommitTimestamp()));
+        database.getCollection("projects").updateOne(projectFilter, projectUpdate);
+        return project;
+    }
+
+    /*
+     * This method will get the project details for a specific project
+     * */
+    public Document getProject(String userId, String projectId) {
+        Document query = new Document("userId", userId).append("projectId", projectId);
+        List<Document> projects =  database.getCollection("projects").find(query).into(new ArrayList<>());
+        return projects.get(0);
+    }
 }
+
