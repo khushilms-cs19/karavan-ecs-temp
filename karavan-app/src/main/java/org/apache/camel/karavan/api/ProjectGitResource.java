@@ -42,8 +42,7 @@ public class ProjectGitResource {
     @Produces(MediaType.APPLICATION_JSON)
     @Consumes(MediaType.APPLICATION_JSON)
     public Map<String,String> push(HashMap<String, String> params) throws Exception {
-        Map<String,String> result = projectService.commitAndPushProject(params.get("projectId"), params.get("commitMessage"),params.get("userName"),params.get("accessToken"),params.get("repoUri"),params.get("branch"),params.get("file"),params.get("isConflictResolved"),params.get("repoOwner"),params.get("userEmail"));
-        // System.out.println("sending push request"+result.toString());
+        Map<String,String> result = projectService.commitAndPushProject(params.get("projectId"), params.get("commitMessage"),params.get("userName"),params.get("accessToken"),params.get("repoUri"),params.get("branch"),params.get("file"),params.get("isConflictResolved"),params.get("repoOwner"),params.get("userEmail"),params.get("userId"));
          return result;
     }
 
@@ -57,9 +56,8 @@ public class ProjectGitResource {
         String accessToken = queryParams.getFirst("accessToken");
         String repoUri = queryParams.getFirst("repoUri");
         String branch = queryParams.getFirst("branch");
-       
-        return projectService.pullProject(projectId,repoOwner,accessToken,repoUri,branch);
-        // return projectService.pullProject("gittesting","shashwath-sk","a","https://github.com/shashwath-sk/karavan-minikube-poc.git","main");
+        String userId = queryParams.getFirst("userId");
+        return projectService.pullProject(projectId,repoOwner,accessToken,repoUri,branch,userId);
     }
 
     @GET
@@ -73,8 +71,7 @@ public class ProjectGitResource {
         String repoUri = queryParams.getFirst("repoUri");
         String branch = queryParams.getFirst("branch");
         String projects = queryParams.getFirst("projects");
-        // System.out.println("projects"+projects);
-        projects = "templates,kamelets,gittesting,test";
-        projectService.getProjectsFromGit(repoOwner,accessToken,repoUri,branch,projects);
+        String userId = queryParams.getFirst("userId");
+        projectService.getProjectsFromGit(repoOwner,accessToken,repoUri,branch,projects,userId);
     }
 }

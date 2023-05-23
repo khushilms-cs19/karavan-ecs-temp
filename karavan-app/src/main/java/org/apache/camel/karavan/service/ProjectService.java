@@ -20,21 +20,21 @@ import io.quarkus.scheduler.Scheduled;
 import io.quarkus.vertx.ConsumeEvent;
 import io.smallrye.mutiny.tuples.Tuple2;
 import org.apache.camel.karavan.model.GitRepo;
+import org.apache.camel.karavan.model.GitRepoFile;
 import org.apache.camel.karavan.model.Project;
 import org.apache.camel.karavan.model.ProjectFile;
-// import org.eclipse.jgit.revwalk.RevCommit;
 import org.eclipse.microprofile.config.inject.ConfigProperty;
 import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
 import org.jboss.logging.Logger;
-
-
+import org.bson.Document;
 
 import javax.enterprise.context.ApplicationScoped;
 import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -50,6 +50,9 @@ public class ProjectService implements HealthCheck{
 
     @Inject
     InfinispanService infinispanService;
+
+    @Inject
+    MongoService mongoService;
 
     @Inject
     KubernetesService kubernetesService;
@@ -117,7 +120,7 @@ public class ProjectService implements HealthCheck{
         try {
             List<GitRepo> repos = gitService.readProjectsToImport();
             repos.forEach(repo -> {
-                Project project;
+                Project project = new Project("tempPlaceHolder", repo.getName(), repo.getName(), "", repo.getCommitId(), repo.getLastCommitTimestamp());
                 String folderName = repo.getName();
                 if (folderName.equals(Project.NAME_TEMPLATES)) {
                     project = new Project(Project.NAME_TEMPLATES, "Templates", "Templates", "", repo.getCommitId(), repo.getLastCommitTimestamp());
@@ -125,15 +128,10 @@ public class ProjectService implements HealthCheck{
                     project = new Project(Project.NAME_KAMELETS, "Custom Kamelets", "Custom Kamelets", "", repo.getCommitId(), repo.getLastCommitTimestamp());
 //                } else if (folderName.equals(Project.NAME_PIPELINES)){
 //                    project = new Project(Project.NAME_PIPELINES, "Pipelines", "CI/CD Pipelines", "", repo.getCommitId(), repo.getLastCommitTimestamp());
-                } else {
-                    project = getProjectFromRepo(repo);
+                } 
+                if(project.getName()!="tempPlaceHolder"){
+                    infinispanService.saveProject(project, true);
                 }
-                infinispanService.saveProject(project, true);
-
-                repo.getFiles().forEach(repoFile -> {
-                    ProjectFile file = new ProjectFile(repoFile.getName(), repoFile.getBody(), folderName, repoFile.getLastCommitTimestamp());
-                    infinispanService.saveProjectFile(file);
-                });
             });
             addKameletsProject();
         } catch (Exception e) {
@@ -177,35 +175,68 @@ public class ProjectService implements HealthCheck{
         return new Project(folderName, projectName, projectDescription, runtime, repo.getCommitId(), repo.getLastCommitTimestamp());
     }
 
-    public Map<String,String> commitAndPushProject(String projectId, String commitMessage,String userName , String accessToken , String repoUri, String branch,String file,String isConflictResolved,String repoOwner,String userEmail) throws Exception {
-        Project p = infinispanService.getProject(projectId);
-        System.out.println("Project is " + p);
-        List<ProjectFile> files = infinispanService.getProjectFiles(projectId);
-        Map<String,String> commitAndPushProjectDetails = gitService.commitAndPushProject(p, files, commitMessage,userName,accessToken,repoUri,branch,file,isConflictResolved,repoOwner,userEmail);
+    public Project getProjectFromDocument(Document projectDocument){
+        Project project = new Project();
+        project.setName(projectDocument.getString("name"));
+        project.setDescription(projectDocument.getString("description"));
+        project.setRuntime(projectDocument.getString("runtime"));
+        project.setLastCommit(projectDocument.getLong("lastCommit").toString());
+        project.setLastCommitTimestamp(projectDocument.getLong("lastCommitTimestamp"));
+        project.setProjectId(projectDocument.getString("projectId"));
+        return project;
+    }
+
+    public List<ProjectFile> getProjectFilesFromDocument(List<Document> documentFiles){
+        List<ProjectFile> files = new ArrayList<>();
+        for(Document doc : documentFiles){
+            ProjectFile pf = new ProjectFile();
+            pf.setName(doc.getString("name"));
+            pf.setCode(doc.getString("code"));
+            pf.setLastUpdate(doc.getLong("lastCommitTimestamp"));
+            files.add(pf);
+        }
+        return files;
+    }
+
+    public Map<String,String> commitAndPushProject(String projectId, String commitMessage,String userName , String accessToken , String repoUri, String branch,String file,String isConflictResolved,String repoOwner,String userEmail,String userId) throws Exception {
+        Document projectDocument = mongoService.getProject(userId, projectId);
+        Project userProject= getProjectFromDocument(projectDocument);
+        List<Document> documentFiles =  mongoService.getProjectFiles(userId, projectId);
+        List<ProjectFile> files =  getProjectFilesFromDocument(documentFiles);
+        Map<String,String> commitAndPushProjectDetails = gitService.commitAndPushProject(userProject, files, commitMessage,userName,accessToken,repoUri,branch,file,isConflictResolved,repoOwner,userEmail);
         if(commitAndPushProjectDetails.get("commitId") !=null ){
             String commitId = commitAndPushProjectDetails.get("commitId");
             Long lastUpdate = Long.parseLong(commitAndPushProjectDetails.get("lastUpdate"));
-            int commitTime = Integer.parseInt(commitAndPushProjectDetails.get("commitTime"));
-            p.setLastCommit(commitId);
-            p.setLastCommitTimestamp(lastUpdate);
-            infinispanService.saveProject(p, false);
-            infinispanService.saveCommit(commitId, commitTime);
+            // int commitTime = Integer.parseInt(commitAndPushProjectDetails.get("commitTime"));
+            userProject.setLastCommit(commitId);
+            userProject.setLastCommitTimestamp(lastUpdate);
+            // infinispanService.saveProject(userProject, false);
+            // infinispanService.saveCommit(commitId, commitTime);
+            //need to update last commit of project in mongo collection,userID
+            mongoService.updateProject(userProject,userId);
+            // mongoService.updateProjectLastCommit(projectId,commitId);
         }
         return commitAndPushProjectDetails;
     }
 
-    public Map<String,String> pullProject(String projectId,String repoOwner , String accessToken , String repoUri, String branch) throws Exception{
-        Project p = infinispanService.getProject(projectId);
-        System.out.println("Project is " + p.getName());
-        List<ProjectFile> files = infinispanService.getProjectFiles(projectId);
-        Map<String,String> pullProjectDetails = gitService.pullProject(p, files,repoOwner,accessToken,repoUri,branch);
+    public Map<String,String> pullProject(String projectId,String repoOwner , String accessToken , String repoUri, String branch,String userId) throws Exception{
+        //  Project p = infinispanService.getProject(projectId);
+        // Project p = infinispanService.getProject(projectId);
+        // System.out.println("Project is " + p.getName());
+        // List<ProjectFile> files = infinispanService.getProjectFiles(projectId);
+        Document projectDocument = mongoService.getProject(userId, projectId);
+        Project userProject= getProjectFromDocument(projectDocument);
+        List<Document> documentFiles =  mongoService.getProjectFiles(userId, projectId);
+        List<ProjectFile> files =  getProjectFilesFromDocument(documentFiles);
+        Map<String,String> pullProjectDetails = gitService.pullProject(userProject, files,repoOwner,accessToken,repoUri,branch);
         if(pullProjectDetails.get("newFiles")!=null){
             String newFiles = pullProjectDetails.get("newFiles");
             String[] newFilesArray = newFiles.split("\n");
             for(String newFile : newFilesArray){
                 String fileCode = pullProjectDetails.get(newFile);
-                ProjectFile file = new ProjectFile(newFile, fileCode, projectId, Instant.now().toEpochMilli());
-                infinispanService.saveProjectFile(file);
+                ProjectFile file = new ProjectFile(newFile, fileCode, projectId, Instant.now().toEpochMilli(),userId);
+                // infinispanService.saveProjectFile(file);
+                mongoService.createFile(file);
                 pullProjectDetails.remove(newFile);
             }
             pullProjectDetails.remove("newFiles");
@@ -213,10 +244,24 @@ public class ProjectService implements HealthCheck{
         return pullProjectDetails;
     }
 
-    public void getProjectsFromGit(String repoOwner , String accessToken , String repoUri, String branch,String projects) throws Exception{
-        //existing branch
-        //new branch
-        gitService.getProjectsFromGit(repoOwner,accessToken,repoUri,branch,projects);
+    public void getProjectsFromGit(String repoOwner , String accessToken , String repoUri, String branch,String projects,String userId) throws Exception{
+        LOGGER.info("Import project from Git " + projects);
+        List<GitRepo> repoProjects = gitService.getProjectsFromGit(repoOwner,accessToken,repoUri,branch,projects);
+        for(GitRepo repoProject : repoProjects){
+            String propertiesFile = ServiceUtil.getPropertiesFile(repoProject);
+            String projectName = ServiceUtil.getProjectName(propertiesFile);
+            String projectDescription = ServiceUtil.getProjectDescription(propertiesFile);
+            String runtime = ServiceUtil.getProjectRuntime(propertiesFile);
+            // Project project = new Project(repoProject.getName(), projectName, projectDescription, runtime, repoProject.getLastCommitTimestamp(),userId);
+            Project project = new Project(repoProject.getName(), projectName, projectDescription, runtime,repoProject.getCommitId(),userId);
+            // infinispanService.saveProject(project, true);
+            mongoService.createProject(project);
+            for(GitRepoFile repoFile : repoProject.getFiles()){
+                ProjectFile file = new ProjectFile(repoFile.getName(), repoFile.getBody(), repoProject.getName(), repoFile.getLastCommitTimestamp(),userId);
+                // infinispanService.saveProjectFile(file);
+                mongoService.createFile(file);
+            }
+        }
     }
 
     void addKameletsProject() {
