@@ -59,6 +59,7 @@ interface State {
     isPulling: boolean,
     gitOperation: string,
     userId: string,
+    lastCommitId: string,
 }
 
 export class ProjectPageToolbar extends React.Component<Props> {
@@ -95,6 +96,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
         isPulling: false,
         gitOperation: '',
         userId: '1',
+        lastCommitId: '',
     };
 
     setIsConflictModalOpen = (isOpen: boolean) => {
@@ -158,7 +160,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
                         fileDiffCodeMap.set(file,res.data[file]);
                     });
                     fileDiffCodeMap.delete("isConflictPresent");
-                    this.setState({isConflictModalOpen: true,fileDiffCodeMap: fileDiffCodeMap});
+                    this.setState({isConflictModalOpen: true,fileDiffCodeMap: fileDiffCodeMap,lastCommitId: res.data.commitId});
                 }
                 else{
                     console.log("Pushed no conflicts present");
@@ -166,6 +168,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
                 }
                 after?.call(this);
             } else {
+                this.setState({isPushing: false});
                 // Todo notification
                 //need to render to an error page
             }
@@ -211,6 +214,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
             } else {
                 // Todo notification
                 //need to render to an error page
+                this.setState({isPulling: false});
             }
         });
     }
@@ -265,6 +269,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
                 setIsCommitMessageOpen = {this.setIsCommitMessageOpen}
                 saveFile = {this.props.saveFile}
                 setConflictResolvedForBranch = {this.setConflictResolvedForBranch}
+                lastCommitId = {this.state.lastCommitId}
                   /> }
             <ToolbarContent>
                 <Flex className="toolbar" direction={{default: "row"}} alignItems={{default: "alignItemsCenter"}}>

@@ -78,13 +78,20 @@ export class ProjectFile {
     projectId: string = '';
     code: string = '';
     lastUpdate: number;
+    lastCommit: string = '';
 
-    constructor(name: string, projectId: string, code: string, lastUpdate: number) {
+    constructor(name: string, projectId: string, code: string, lastUpdate: number,lastCommit?: string) {
         this.name = name;
         this.projectId = projectId;
         this.code = code;
         this.lastUpdate = lastUpdate;
+        this.lastCommit = lastCommit ?? '';
     }
+
+    public setLastCommit(lastCommit: string) {
+        this.lastCommit = lastCommit;
+    }
+
 }
 
 export class ProjectFileType {

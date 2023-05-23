@@ -13,6 +13,7 @@ interface Props {
   setIsCommitMessageOpen: (name: boolean) => void;
   saveFile: (file: ProjectFile) => void;
   setConflictResolvedForBranch : () => void;
+  lastCommitId: string;
 }
 
 interface State {
@@ -107,7 +108,6 @@ export class ResolveMergeConflictsModal extends React.Component<Props, State> {
 
   handleSave = () => {
     const file = this.handleClick();
-    console.log('file', file);
     if(file && this.containsGitMarkers(file.fileContent)){
       this.setState((prevState) => ({
         isConflictResolved: prevState.isConflictResolved.set(file.fileName, false),
@@ -115,7 +115,7 @@ export class ResolveMergeConflictsModal extends React.Component<Props, State> {
       // this.props.setIsConflictModalOpen(true);
     }
     else if(file){
-        const updatedFile = new ProjectFile(file.fileName,this.props.projectId,file.fileContent, Date.now())
+        const updatedFile = new ProjectFile(file.fileName,this.props.projectId,file.fileContent, Date.now(), this.props.lastCommitId)
         this.setState((prevState) => ({
           isConflictResolved: prevState.isConflictResolved.set(file.fileName, true),
         }));
@@ -134,7 +134,7 @@ export class ResolveMergeConflictsModal extends React.Component<Props, State> {
         this.props.setIsCommitMessageOpen(isAllMergeConflictResolved);
         this.props.setIsConflictModalOpen(!isAllMergeConflictResolved);
         if(isAllMergeConflictResolved){
-          this.props.setConflictResolvedForBranch();
+           this.props.setConflictResolvedForBranch();
         }
         this.props.saveFile(updatedFile);
         // this.setState({enablePushOperation: isAllMergeConflictResolved});
