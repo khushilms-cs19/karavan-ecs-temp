@@ -50,6 +50,19 @@ public class Project {
         this.userId = userId;
     }
 
+    /*
+     * New constructor create for introduction of new lastCommit
+     */
+    public Project(String projectId, String name, String description, String runtime,String lastCommit, String userId) {
+        this.projectId = projectId;
+        this.name = name;
+        this.description = description;
+        this.runtime = runtime;
+        this.lastCommit = lastCommit;
+        this.lastCommitTimestamp = Instant.now().toEpochMilli();
+        this.userId = userId;
+    }
+
     public Project() {
     }
 
