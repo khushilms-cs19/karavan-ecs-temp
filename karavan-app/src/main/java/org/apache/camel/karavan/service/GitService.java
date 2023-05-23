@@ -548,7 +548,7 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
         return readProjectsFromRepository(git, projectId).get(0);
     }
 
-    public void getProjectsFromGit(String repoOwner, String accessToken, String repoUri, String branch,String existingProjects) throws GitAPIException, IOException, URISyntaxException {
+    public List<GitRepo> getProjectsFromGit(String repoOwner, String accessToken, String repoUri, String branch,String existingProjects) throws GitAPIException, IOException, URISyntaxException {
         CredentialsProvider cred = new UsernamePasswordCredentialsProvider(repoOwner, accessToken);
         GitPushConfig gitPushConfig = new GitPushConfig("","", repoUri, branch, "");
         String uuid = UUID.randomUUID().toString();
@@ -564,40 +564,31 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
         } catch (Exception e) {
             LOGGER.error("Error", e);
         }
-        List<GitRepoProjects> repoProjects = readProjectsFromUserRepo(git, null,existingProjects);
-        //iterate repoProjects and display only those projects which are not in projects
-        // List<GitRepo> projectsToImport = new ArrayList<>();
-        // for (GitRepo repoProject : repoProjects) {
-        //     if(!projects.contains(repoProject.getName())){
-        //         LOGGER.info("Adding project to import list: " + repoProject.getName());
-        //         projectsToImport.add(repoProject);
-        //     }
-        // }
+        List<GitRepo> repoProjects = readProjectsFromUserRepo(git,existingProjects, null);
         //iterate over repoProjects and display all projects
-        for (GitRepoProjects repoProject : repoProjects) {
-            LOGGER.info("Adding project to import list: " + repoProject.getFilename());
-        }
+        return repoProjects;
     }
 
 
-    private List<GitRepoProjects> readProjectsFromUserRepo(Git git,String existingProjects,String... filter) {
+    private List<GitRepo> readProjectsFromUserRepo(Git git,String existingProjects,String... filter) {
         LOGGER.info("Read projects...");
-        List<GitRepoProjects> result = new ArrayList<>();
+        List<GitRepo> result = new ArrayList<>();
         try {
             String folder = git.getRepository().getDirectory().getAbsolutePath().replace("/.git", "");
             List<String> projects = readProjectsFromFolder(folder,existingProjects,filter);
             //all folder names present here are projects
             for (String project : projects) {
                 Map<String, String> filesRead = readProjectFilesFromFolder(folder, project);
-                // List<GitRepoFile> files = new ArrayList<>(filesRead.size());
+                List<GitRepoFile> files = new ArrayList<>(filesRead.size());
                 for (Map.Entry<String, String> entry : filesRead.entrySet()) {
-                    String fileName = entry.getKey();
-                    String fileCode = entry.getValue();
-                    Tuple2<String, Integer> fileCommit = lastCommit(git, project + File.separator + fileName);
-                    Tuple2<String, Integer> commit = lastCommit(git, project);
-                    GitRepoProjects newProject =  new GitRepoProjects(project, commit.getItem1(), Integer.valueOf(commit.getItem2()).longValue() * 1000, fileName, fileCode, Integer.valueOf(fileCommit.getItem2()).longValue() * 1000 );
-                    result.add(newProject);
+                    String name = entry.getKey();
+                    String body = entry.getValue();
+                    Tuple2<String, Integer> fileCommit = lastCommit(git, project + File.separator + name);
+                    files.add(new GitRepoFile(name, Integer.valueOf(fileCommit.getItem2()).longValue() * 1000, body));
                 }
+                Tuple2<String, Integer> commit = lastCommit(git, project);
+                GitRepo repo = new GitRepo(project, commit.getItem1(), Integer.valueOf(commit.getItem2()).longValue() * 1000, files);
+                result.add(repo);
             }
             return result;
         } catch (RefNotFoundException e) {
@@ -643,6 +634,7 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
     private List<String> readProjectsFromFolder(String folder, String existingProjects, String... filter) {
         LOGGER.info("Read projects from " + folder);
         List<String> files = new ArrayList<>();
+        HashSet<String> existingProjectsSet = new HashSet<>(Arrays.asList(existingProjects.split(",")));
         vertx.fileSystem().readDirBlocking(folder).forEach(path -> {
             LOGGER.info("Read path " + path);
             String[] filenames = path.split(File.separator);
@@ -650,12 +642,11 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
             LOGGER.info("Read folder " + folderName);
             if (folderName.startsWith(".")) {
                 // skip hidden
-            } else if (Files.isDirectory(Paths.get(path)) ) {
+            } else if (Files.isDirectory(Paths.get(path)) && !existingProjectsSet.contains(folderName) ) {
                 if (filter == null || Arrays.stream(filter).filter(f -> f.equals(folderName)).findFirst().isPresent()) {
                     LOGGER.info("Importing project from folder " + folderName);
                     files.add(folderName);
                     //gives me all folder existing in specified github repo
-                    // && !existingProjects.contains(folderName)
                 }
             }
         });
@@ -664,12 +655,18 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
 
     private Map<String, String> readProjectFilesFromFolder(String repoFolder, String projectFolder) {
         LOGGER.infof("Read files from %s/%s", repoFolder, projectFolder);
+        HashSet<String> compatibleFiles = new HashSet<>(Arrays.asList("json", "yaml", "java", "properties"));
         Map<String, String> files = new HashMap<>();
         vertx.fileSystem().readDirBlocking(repoFolder + File.separator + projectFolder).forEach(f -> {
             String[] filenames = f.split(File.separator);
             String filename = filenames[filenames.length - 1];
             Path path = Paths.get(f);
-            if (!filename.startsWith(".") && !Files.isDirectory(path)) {
+            int lastDotIndex = filename.lastIndexOf(".");
+            String extension = "";
+            if (lastDotIndex != -1 && lastDotIndex < filename.length() - 1) {
+                 extension = filename.substring(lastDotIndex + 1);
+            }
+            if (!filename.startsWith(".") && !Files.isDirectory(path)&& compatibleFiles.contains(extension)) {
                 LOGGER.info("Importing file " + filename);
                 try {
                     files.put(filename, Files.readString(path));
@@ -724,7 +721,6 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
         LOGGER.info("Write files for project " + fileSelected);
         if(fileSelected.equals(".")){
             for (ProjectFile file : files) {
-                LOGGER.info("Add file " + file.getName());
                 Files.writeString(Paths.get(folder, project.getProjectId(), file.getName()), file.getCode());
             }
         }
