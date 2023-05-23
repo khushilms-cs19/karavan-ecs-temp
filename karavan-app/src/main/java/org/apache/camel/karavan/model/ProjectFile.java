@@ -18,6 +18,7 @@ public class ProjectFile {
     @ProtoField(number = 4)
     Long lastUpdate;
     String userId; //additional field userId for data
+    String lastCommit; // used for github capability
 
     @ProtoFactory
     public ProjectFile(String name, String code, String projectId, Long lastUpdate) {
@@ -73,6 +74,13 @@ public class ProjectFile {
         this.lastUpdate = lastUpdate;
     }
 
+    public String getLastCommit(){
+        return lastCommit;
+    }
+    public void setLastCommit(String commitId){
+        this.lastCommit = commitId;
+    }
+
     /*
     UserId getter and setters added
      */
@@ -88,6 +96,7 @@ public class ProjectFile {
                 ", projectId='" + projectId + '\'' +
                 ", lastUpdate=" + lastUpdate +
                 ", userId=" + userId +
+                ", lastCommit=" + lastCommit+
                 '}';
     }
 }

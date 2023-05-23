@@ -35,6 +35,7 @@ import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -180,7 +181,7 @@ public class ProjectService implements HealthCheck{
         project.setName(projectDocument.getString("name"));
         project.setDescription(projectDocument.getString("description"));
         project.setRuntime(projectDocument.getString("runtime"));
-        project.setLastCommit(projectDocument.getLong("lastCommit").toString());
+        project.setLastCommit(projectDocument.getString("lastCommit"));
         project.setLastCommitTimestamp(projectDocument.getLong("lastCommitTimestamp"));
         project.setProjectId(projectDocument.getString("projectId"));
         return project;
@@ -203,27 +204,36 @@ public class ProjectService implements HealthCheck{
         Project userProject= getProjectFromDocument(projectDocument);
         List<Document> documentFiles =  mongoService.getProjectFiles(userId, projectId);
         List<ProjectFile> files =  getProjectFilesFromDocument(documentFiles);
+        LOGGER.info("Commit and push project file selected " + file);
+        if(!file.equals(".")){
+            Iterator<ProjectFile> iterator = files.iterator();
+            while (iterator.hasNext()) {
+                ProjectFile projectFile = iterator.next();
+                if (!projectFile.getName().equals(file)) {
+                    LOGGER.info("Commit and push project file removed " + projectFile.getName());
+                    iterator.remove();
+                }
+            }
+        }
         Map<String,String> commitAndPushProjectDetails = gitService.commitAndPushProject(userProject, files, commitMessage,userName,accessToken,repoUri,branch,file,isConflictResolved,repoOwner,userEmail);
-        if(commitAndPushProjectDetails.get("commitId") !=null ){
+        if(commitAndPushProjectDetails.get("commitId") !=null && commitAndPushProjectDetails.get("lastUpdate") !=null){
             String commitId = commitAndPushProjectDetails.get("commitId");
             Long lastUpdate = Long.parseLong(commitAndPushProjectDetails.get("lastUpdate"));
-            // int commitTime = Integer.parseInt(commitAndPushProjectDetails.get("commitTime"));
             userProject.setLastCommit(commitId);
             userProject.setLastCommitTimestamp(lastUpdate);
-            // infinispanService.saveProject(userProject, false);
-            // infinispanService.saveCommit(commitId, commitTime);
-            //need to update last commit of project in mongo collection,userID
             mongoService.updateProject(userProject,userId);
-            // mongoService.updateProjectLastCommit(projectId,commitId);
+            for(ProjectFile projectFile : files){
+                projectFile.setLastCommit(commitId);
+                mongoService.updateFile(projectFile);
+            }
+            //get all project files from mongo and update files lastCommit with commitId
+
+
         }
         return commitAndPushProjectDetails;
     }
 
     public Map<String,String> pullProject(String projectId,String repoOwner , String accessToken , String repoUri, String branch,String userId) throws Exception{
-        //  Project p = infinispanService.getProject(projectId);
-        // Project p = infinispanService.getProject(projectId);
-        // System.out.println("Project is " + p.getName());
-        // List<ProjectFile> files = infinispanService.getProjectFiles(projectId);
         Document projectDocument = mongoService.getProject(userId, projectId);
         Project userProject= getProjectFromDocument(projectDocument);
         List<Document> documentFiles =  mongoService.getProjectFiles(userId, projectId);
@@ -235,7 +245,6 @@ public class ProjectService implements HealthCheck{
             for(String newFile : newFilesArray){
                 String fileCode = pullProjectDetails.get(newFile);
                 ProjectFile file = new ProjectFile(newFile, fileCode, projectId, Instant.now().toEpochMilli(),userId);
-                // infinispanService.saveProjectFile(file);
                 mongoService.createFile(file);
                 pullProjectDetails.remove(newFile);
             }
@@ -252,13 +261,10 @@ public class ProjectService implements HealthCheck{
             String projectName = ServiceUtil.getProjectName(propertiesFile);
             String projectDescription = ServiceUtil.getProjectDescription(propertiesFile);
             String runtime = ServiceUtil.getProjectRuntime(propertiesFile);
-            // Project project = new Project(repoProject.getName(), projectName, projectDescription, runtime, repoProject.getLastCommitTimestamp(),userId);
             Project project = new Project(repoProject.getName(), projectName, projectDescription, runtime,repoProject.getCommitId(),userId);
-            // infinispanService.saveProject(project, true);
             mongoService.createProject(project);
             for(GitRepoFile repoFile : repoProject.getFiles()){
                 ProjectFile file = new ProjectFile(repoFile.getName(), repoFile.getBody(), repoProject.getName(), repoFile.getLastCommitTimestamp(),userId);
-                // infinispanService.saveProjectFile(file);
                 mongoService.createFile(file);
             }
         }

@@ -80,6 +80,7 @@ import java.util.Base64;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -207,24 +208,37 @@ public class GitService {
         } catch (Exception e) {
             LOGGER.error("Error", e);
         }
-        String lastCommitId = getLastCommit(git);
+        String repoLastCommitId = getLastCommit(git);
         boolean isProjectExists = checkIfProjectExists(folder,"/"+project.getProjectId());
         writeProjectToFolder(folder, project, files,fileSelected);
         addDeletedFilesToIndex(git, folder, project, files);
-        if(!isBranchExists){
-            LOGGER.info("Pushing to new branch");
-            pushProjectToNewBranch(git,folder, project, files,fileSelected,gitPushConfig,cred);
-        }
-        else{
-            if(isProjectExists && !isConflictResolved.equals("true") && !lastCommitId.equals(project.getLastCommit())){
-                LOGGER.info("Pushing existing project which is not resolved");
-               return pushExistingProject(git,folder, project, files,fileSelected,gitPushConfig,cred);
-            }else{
-                LOGGER.info("Pushing new project");
-                pushNewProject(git,folder, project, files,fileSelected,gitPushConfig,cred);
+        Iterator<ProjectFile> iterator = files.iterator();
+        while (iterator.hasNext()) {
+            ProjectFile file = iterator.next();
+            if (file.getLastCommit()!=null && file.getLastCommit().equals(repoLastCommitId)) {
+                LOGGER.info("Removing file from list as it is already pushed"+file.getLastCommit()+"repo"+repoLastCommitId);
+                iterator.remove();
             }
         }
-        return new HashMap<>();
+        if(!isBranchExists){
+            LOGGER.info("Pushing to new branch");
+            return pushProjectToNewBranch(git,folder, project, files,fileSelected,gitPushConfig,cred);
+        }
+        else{
+            // && !lastCommitId.equals(project.getLastCommit())
+            LOGGER.info("isProjectExists"+isProjectExists);
+            LOGGER.info("!isConflictResolved.equals()"+!isConflictResolved.equals("true"));
+            LOGGER.info("!repoLastCommitId.equals(project.getLastCommit())"+!repoLastCommitId.equals(project.getLastCommit()));
+            LOGGER.info("files.size()>0"+files.size());
+            if(isProjectExists && !isConflictResolved.equals("true") && !repoLastCommitId.equals(project.getLastCommit()) && files.size()>0){
+                LOGGER.info("Pushing existing project which is not resolved");
+                return pushExistingProject(git,folder, project, files,fileSelected,gitPushConfig,cred);
+                
+            }else{
+                LOGGER.info("Pushing new project");
+                return pushNewProject(git,folder, project, files,fileSelected,gitPushConfig,cred);
+            }
+        }
     }
 
     public boolean checkIfProjectExists(String folder,String project) throws IOException {
@@ -251,6 +265,7 @@ public class GitService {
         Map<String,String> fileNameAndCode = fileNameAndCodeMap(files);
         Map<String,String> commitAndPushDetails = new HashMap<String,String>();
         commitAndPushDetails = detectMergeConflicts(git,newBranchId,fileNameAndCode,"Push");
+        commitAndPushDetails.put("commitId",commit.getId().getName());
         if(commitAndPushDetails.get("isConflictPresent") == null){
             mergeLocalBranches(git);
             commitAndPushDetails = commitAddedAndPush(git, gitPushConfig.getBranch(), cred, commitAndPushDetails,commit);
@@ -719,19 +734,8 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
         LOGGER.info("Write files to path " + Paths.get(folder, project.getProjectId()));
         LOGGER.info("Write files for project " + project.getProjectId());
         LOGGER.info("Write files for project " + fileSelected);
-        if(fileSelected.equals(".")){
-            for (ProjectFile file : files) {
-                Files.writeString(Paths.get(folder, project.getProjectId(), file.getName()), file.getCode());
-            }
-        }
-        else{
-            LOGGER.info("Write files for project  inside " + fileSelected);
-            for (ProjectFile file : files) {
-                if(file.getName().equals(fileSelected)){
-                    Files.writeString(Paths.get(folder, project.getProjectId(), file.getName()), file.getCode());
-                    LOGGER.info("Add file " + file.getName());
-                }
-            }
+        for (ProjectFile file : files) {
+            Files.writeString(Paths.get(folder, project.getProjectId(), file.getName()), file.getCode());
         }
     }
 
