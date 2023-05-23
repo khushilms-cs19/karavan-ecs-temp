@@ -65,7 +65,8 @@ interface State {
     repoOwner: string,
     isUploading: boolean,
     isUploadModalOpen: boolean,
-    saveUserDetails: boolean
+    saveUserDetails: boolean,
+    userId: string
 }
 
 export class ProjectsPage extends React.Component<Props, State> {
@@ -90,7 +91,8 @@ export class ProjectsPage extends React.Component<Props, State> {
         repoOwner: '',
         isUploading: false,
         isUploadModalOpen: false,
-        saveUserDetails: false
+        saveUserDetails: false,
+        userId: '1'
     };
     interval: any;
 
@@ -138,12 +140,15 @@ export class ProjectsPage extends React.Component<Props, State> {
 
     deleteProject = async () => {
         if (this.state.projectToDelete){
-            await axios.delete(`/${API_URL}/project/1/${this.state.projectToDelete.name}`)
+            console.log("Deleting project: " + this.state.projectToDelete.name);
+            await axios.delete(`/${API_URL}/project/1/${this.state.projectToDelete.projectId}`)
             KaravanApi.deleteProject(this.state.projectToDelete, res => {
                 if (res.status === 204) {
+                    console.log("Project deleted");
                     this.props.toast?.call(this, "Success", "Project deleted", "success");
                     this.onGetProjects();
                 } else {
+                    console.log("project not deleted");
                     this.props.toast?.call(this, "Error", res.statusText, "danger");
                 }
             });
@@ -239,7 +244,7 @@ export class ProjectsPage extends React.Component<Props, State> {
     }
 
     onUpload = (after?: () => void) => {
-        this.setState({isUploading: true, isUploadModalOpen: false});
+        this.setState({isUploading: true});
         const {repoOwner, repoUri, branch, accessToken, saveUserDetails} = this.state;
 
         const githubParams = {
@@ -248,22 +253,14 @@ export class ProjectsPage extends React.Component<Props, State> {
             "repoUri": repoUri,
             "branch": branch,
         };
-        console.log("githubParams", githubParams);
-        let projects = this.state.projects.reduce((acc, project) => {
+        let projects = this.state.allProjects.reduce((acc, project) => {
             return acc + project.projectId + ",";
           }, "");
-        // const fileParams = {
-        //     "projectId": this.props.project.projectId,
-        //     "file": this.props.file?.name || ".",
-        //     "isConflictResolved" : conflictResolvedForBranch === this.state.branch
-        // };
-        // const params = {...githubParams, ...fileParams};
-        const params = {...githubParams,projects: projects};
-        console.log("params", params);
+        const params = {...githubParams,projects: projects,userId:this.state.userId};
         
         if (saveUserDetails) {
             StorageApi.setGithubParameters({
-                ...params, accessToken: "",
+                ...githubParams, accessToken: "",
                 userName: '',
                 commitMessage: '',
                 userEmail: ''
@@ -272,23 +269,14 @@ export class ProjectsPage extends React.Component<Props, State> {
         KaravanApi.uploadFromGit(params, res => {
             if (res.status === 200 || res.status === 201) {
                 this.setState({isUploading: false});
-                // if(res.data && res.data.isConflictPresent){
-                //     const fileDiffCodeMap = new Map();
-                //     Object.keys(res.data).map(file =>{
-                //         fileDiffCodeMap.set(file,res.data[file]);
-                //     });
-                //     fileDiffCodeMap.delete("isConflictPresent");
-                //     this.setState({isConflictModalOpen: true,fileDiffCodeMap: fileDiffCodeMap});
-                // }
-                // else{
-                //     console.log("Pushed no conflicts present");
-                //     this.props.onRefresh.call(this);
-                // }
+                this.fetchAllProjects();
                 after?.call(this);
             } else {
+                console.log(res);
                 // Todo notification
                 //need to render to an error page
             }
+            this.setState({isUploadModalOpen: false, isUploading: false});
         });
     }
 

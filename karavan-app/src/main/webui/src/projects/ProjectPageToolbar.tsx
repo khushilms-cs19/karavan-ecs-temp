@@ -58,6 +58,7 @@ interface State {
     conflictResolvedForBranch: string,
     isPulling: boolean,
     gitOperation: string,
+    userId: string,
 }
 
 export class ProjectPageToolbar extends React.Component<Props> {
@@ -93,6 +94,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
         conflictResolvedForBranch: '',
         isPulling: false,
         gitOperation: '',
+        userId: '1',
     };
 
     setIsConflictModalOpen = (isOpen: boolean) => {
@@ -142,7 +144,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
             "file": this.props.file?.name || ".",
             "isConflictResolved" : conflictResolvedForBranch === this.state.branch
         };
-        const params = {...githubParams, ...fileParams};
+        const params = {...githubParams, ...fileParams, userId: this.state.userId};
         
         if (saveUserDetails) {
             StorageApi.setGithubParameters({...githubParams,accessToken:""})
@@ -186,7 +188,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
             "projectId": this.props.project.projectId,
             "isConflictResolved" : conflictResolvedForBranch === this.state.branch
         };
-        const params = {...githubParams, ...fileParams};
+        const params = {...githubParams, ...fileParams, userId: this.state.userId};
         
         if (saveUserDetails) {
             StorageApi.setGithubParameters({...githubParams,accessToken:""})
@@ -337,7 +339,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
     getCommitModalParameter(){
         const {commitMessage, commitMessageIsOpen,userName,accessToken,repoUri,branch,saveUserDetails,isPushing,repoOwner,userEmail,gitOperation,isPulling} = this.state;
         const pushEnabled = !isPushing && accessToken && userName && repoUri && commitMessage && branch;
-        const pullEnabled = !isPushing && accessToken && userName && repoUri && branch;
+        const pullEnabled = !isPulling && accessToken && userName && repoUri && branch;
         const isLoading = gitOperation === "Pull" ? isPulling : isPushing;
         const isDisabled = gitOperation === "Pull" ? !pullEnabled : !pushEnabled;
         const onClick = gitOperation === "Pull" ? () => this.pull() : () => this.push();
