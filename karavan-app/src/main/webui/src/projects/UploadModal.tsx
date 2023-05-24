@@ -16,7 +16,7 @@ interface Props {
 }
 
 interface State {
-    type: 'integration' | 'openapi'
+    type: 'integration' | 'openapi' | 'java'
     data: string
     filename: string
     integrationName: string
@@ -53,7 +53,7 @@ export class UploadModal extends React.Component<Props, State> {
             lastUpdate: file.lastUpdate,
             userId: '1'
         })
-        if (this.state.type === "integration"){
+        if (this.state.type === "integration" || this.state.type === "java"){
             KaravanApi.postProjectFile(file, res => {
                 if (res.status === 200) {
                     //TODO show notification
@@ -63,7 +63,8 @@ export class UploadModal extends React.Component<Props, State> {
                     this.props.onClose?.call(this);
                 }
             })
-        } else {
+        }
+         else {
             KaravanApi.postOpenApi(file, state.generateRest, state.generateRoutes, state.integrationName, res => {
                 if (res.status === 200) {
                     console.log(res) //TODO show notification
@@ -91,10 +92,10 @@ export class UploadModal extends React.Component<Props, State> {
 
     render() {
         const fileNotUploaded = (this.state.filename === '' || this.state.data === '');
-        const isDisabled = this.state.type === 'integration'
+        const isDisabled = this.state.type === 'integration' || this.state.type === 'java'
             ? fileNotUploaded
             : !(!fileNotUploaded && this.state.integrationName !== undefined && this.state.integrationName.endsWith(".yaml"));
-        const accept = this.state.type === 'integration' ? '.yaml' : '.json, .yaml';
+        const accept = this.state.type === 'integration' ? '.yaml' : this.state.type === 'java' ? '.java' : '.json, .yaml';
         return (
             <Modal
                 title="Upload"
@@ -113,6 +114,9 @@ export class UploadModal extends React.Component<Props, State> {
                         />{' '}
                         <Radio value="OpenAPI" label="OpenAPI json/yaml" name="OpenAPI" id="OpenAPI" isChecked={this.state.type === 'openapi'}
                             onChange={(_, event) => this.setState({ type: _ ? 'openapi' : 'integration' })}
+                        />{' '}
+                        <Radio value={"Java"} label="Java Files" name="Java" id='Java' isChecked={this.state.type === 'java'}
+                            onChange={() => this.setState({type:'java'})}
                         />
                     </FormGroup>
                     <FormGroup fieldId="upload">

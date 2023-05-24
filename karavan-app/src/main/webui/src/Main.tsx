@@ -216,7 +216,7 @@ export class Main extends React.Component<Props, State> {
             <FlexItem flex={{ default: "flex_2" }} alignSelf={{ default: "alignSelfCenter" }}>
                 <Divider />
             </FlexItem>
-            {KaravanApi.authType !== 'public' &&
+            {/* {KaravanApi.authType !== 'public' &&
                 <FlexItem alignSelf={{ default: "alignSelfCenter" }}>
                     <Popover
                         aria-label="Current user"
@@ -237,7 +237,7 @@ export class Main extends React.Component<Props, State> {
                     >
                         <UserIcon className="avatar" />
                     </Popover>
-                </FlexItem>}
+                </FlexItem>} */}
         </Flex>)
     }
 

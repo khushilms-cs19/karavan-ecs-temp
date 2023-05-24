@@ -259,6 +259,7 @@ export class ProjectPage extends React.Component<Props, State> {
             project={this.props.project}
             needCommit={this.needCommit()}
             file={this.state.file}
+            files={this.state.files}
             mode={this.state.mode}
             isTemplates={this.isTemplatesProject()}
             isKamelets={this.isKameletsProject()}
