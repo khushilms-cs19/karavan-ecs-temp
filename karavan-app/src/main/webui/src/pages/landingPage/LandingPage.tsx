@@ -44,13 +44,13 @@ export class LandingPage extends Component<Props, State> {
       {
         name: 'Durga P Menon',
         img: durgaImg,
-        designation: 'Engineer II,',
+        designation: 'Software Engineer II,',
         location: 'Bangalore'
       },
       {
         name: 'Madhumilind Toraskar',
         img: madhuImg,
-        designation: 'Principal Engineer I,',
+        designation: 'Principal Software Engineer I,',
         location: 'Bangalore'
       },
       {
@@ -68,13 +68,13 @@ export class LandingPage extends Component<Props, State> {
       {
         name: 'Sanket Shivam',
         img: sanketImg,
-        designation: 'Engineer I,',
+        designation: 'Software Engineer I,',
         location: 'Gurugram'
       },
       {
         name: 'Shivam Mahajan',
         img: shivamImg,
-        designation: 'Engineer I,',
+        designation: 'Software Engineer I,',
         location: 'Gurugram'
       },
     ]
@@ -83,25 +83,25 @@ export class LandingPage extends Component<Props, State> {
       {
         name: 'Khushil Sindwad',
         img: khushilImg,
-        designation: 'Software Engineer Intern,',
+        designation: 'Software Engineer - Intern,',
         location: 'Bangalore'
       },
       {
         name: 'Mehak Noor Singh',
         img: mehakImg,
-        designation: 'Software Engineer Intern,',
+        designation: 'Software Engineer - Intern,',
         location: 'Bangalore'
       },
       {
         name: 'Samim Hossain Mondal',
         img: samimImg,
-        designation: 'Software Engineer Intern,',
+        designation: 'Software Engineer - Intern,',
         location: 'Bangalore'
       },
       {
         name: 'Shashwath S K',
         img: shashwathImg,
-        designation: 'Software Engineer Intern,',
+        designation: 'Software Engineer - Intern,',
         location: 'Bangalore'
       },
     ]
