@@ -191,49 +191,47 @@ public class GitService {
     public Map<String,String> commitAndPushProject(Project project, List<ProjectFile> files, String commitMessage, String userName , String accessToken , String repoUri , String branch,String fileSelected,String isConflictResolved,String repoOwner,String userEmail) throws GitAPIException, IOException, URISyntaxException {
         CredentialsProvider cred = new UsernamePasswordCredentialsProvider(repoOwner, accessToken);
         GitPushConfig gitPushConfig = new GitPushConfig(userName,commitMessage, repoUri, branch, userEmail);
-        String uri = repoUri;
         String uuid = UUID.randomUUID().toString();
         String folder = vertx.fileSystem().createTempDirectoryBlocking(uuid);
         boolean isBranchExists = true;
         LOGGER.info("Temp folder created " + folder);
         Git git = null;
         try {
-            git = clone(folder, uri, branch, cred);
+            git = clone(folder, repoUri, branch, cred);
             checkout(git, true, null, null, "intermediate-merge-branch");
         } catch (RefNotFoundException | TransportException e) {
             LOGGER.error("New repository");
-            git = clone(folder, uri, "main", cred);
+            git = clone(folder, repoUri, "main", cred);
             checkout(git, true, null, null, branch);
             isBranchExists = false;
         } catch (Exception e) {
             LOGGER.error("Error", e);
         }
         String repoLastCommitId = getLastCommit(git);
+        String repoBranchUri = repoUri+"/"+branch;
         boolean isProjectExists = checkIfProjectExists(folder,"/"+project.getProjectId());
-        writeProjectToFolder(folder, project, files,fileSelected);
-        addDeletedFilesToIndex(git, folder, project, files);
-        Iterator<ProjectFile> iterator = files.iterator();
-        while (iterator.hasNext()) {
-            ProjectFile file = iterator.next();
-            if (file.getLastCommit()!=null && file.getLastCommit().equals(repoLastCommitId)) {
-                LOGGER.info("Removing file from list as it is already pushed"+file.getLastCommit()+"repo"+repoLastCommitId);
-                iterator.remove();
+        Iterator<ProjectFile> Iterator = files.iterator();
+        while (Iterator.hasNext()) {
+            ProjectFile file = Iterator.next();
+            LOGGER.info("file.getLastCommit(repoBranchUri)"+file.getLastCommit(repoBranchUri));
+            if (file.getLastCommit(repoBranchUri)!=null && file.getLastCommit(repoBranchUri).equals(repoLastCommitId)) {
+                LOGGER.info("Removing file from list as it is already pushed"+file.getLastCommit(repoBranchUri)+"repo"+repoLastCommitId + file.getName());
+                Iterator.remove();
             }
         }
+        writeProjectToFolder(folder, project, files,fileSelected);
+        addDeletedFilesToIndex(git, folder, project, files);
         if(!isBranchExists){
             LOGGER.info("Pushing to new branch");
             return pushProjectToNewBranch(git,folder, project, files,fileSelected,gitPushConfig,cred);
         }
         else{
             // && !lastCommitId.equals(project.getLastCommit())
-            LOGGER.info("isProjectExists"+isProjectExists);
-            LOGGER.info("!isConflictResolved.equals()"+!isConflictResolved.equals("true"));
-            LOGGER.info("!repoLastCommitId.equals(project.getLastCommit())"+!repoLastCommitId.equals(project.getLastCommit()));
-            LOGGER.info("files.size()>0"+files.size());
-            if(isProjectExists && !isConflictResolved.equals("true") && !repoLastCommitId.equals(project.getLastCommit()) && files.size()>0){
+            if(isProjectExists && files.size()>0){
                 LOGGER.info("Pushing existing project which is not resolved");
-                return pushExistingProject(git,folder, project, files,fileSelected,gitPushConfig,cred);
-                
+                Map<String,String> pushProjectDetails = pushExistingProject(git,folder, project, files,fileSelected,gitPushConfig,cred);
+                pushProjectDetails.put("commitId",repoLastCommitId);
+                return pushProjectDetails;
             }else{
                 LOGGER.info("Pushing new project");
                 return pushNewProject(git,folder, project, files,fileSelected,gitPushConfig,cred);
@@ -520,25 +518,36 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
         LOGGER.info("Pulling project " + project.getProjectId());
         CredentialsProvider cred = new UsernamePasswordCredentialsProvider(repoOwner, accessToken);
         GitPushConfig gitPushConfig = new GitPushConfig("","", repoUri, branch, "");
-        String uri = repoUri;
         String uuid = UUID.randomUUID().toString();
         String folder = vertx.fileSystem().createTempDirectoryBlocking(uuid);
         LOGGER.info("Temp folder created " + folder);
         Git git = null;
         try {
-            git = clone(folder, uri, branch, cred);
+            git = clone(folder, repoUri, branch, cred);
             checkout(git, true, null, null, "intermediate-merge-branch");
         } catch (RefNotFoundException | TransportException e) {
             return new HashMap<>();
         } catch (Exception e) {
             LOGGER.error("Error", e);
         }
+        String repoLastCommitId = getLastCommit(git);
+        String repoBranchUri = repoUri+"/"+branch;
         boolean isProjectExists = checkIfProjectExists(folder,"/"+project.getProjectId());
+        Iterator<ProjectFile> iterator = files.iterator();
+        while (iterator.hasNext()) {
+            ProjectFile file = iterator.next();
+            if (file.getLastCommit(repoBranchUri)!=null && file.getLastCommit(repoBranchUri).equals(repoLastCommitId)) {
+                LOGGER.info("Removing file from list as it is already pushed"+file.getLastCommit(repoBranchUri)+"repo"+repoLastCommitId);
+                iterator.remove();
+            }
+        }
         writeProjectToFolder(folder, project, files,".");
         addDeletedFilesToIndex(git, folder, project, files);
         if(isProjectExists){
             LOGGER.info("pulling existing project");
-            return pullExistingProject(git,folder, project, files,".",gitPushConfig,cred);
+            Map<String,String> pullProjectDetails =  pullExistingProject(git,folder, project, files,".",gitPushConfig,cred);
+            pullProjectDetails.put("commitId",repoLastCommitId);
+            return pullProjectDetails;
         }
         return new HashMap<>();
 }
@@ -649,6 +658,7 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
     private List<String> readProjectsFromFolder(String folder, String existingProjects, String... filter) {
         LOGGER.info("Read projects from " + folder);
         List<String> files = new ArrayList<>();
+        existingProjects = existingProjects!=null?existingProjects:"";
         HashSet<String> existingProjectsSet = new HashSet<>(Arrays.asList(existingProjects.split(",")));
         vertx.fileSystem().readDirBlocking(folder).forEach(path -> {
             LOGGER.info("Read path " + path);
@@ -735,6 +745,7 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
         LOGGER.info("Write files for project " + project.getProjectId());
         LOGGER.info("Write files for project " + fileSelected);
         for (ProjectFile file : files) {
+            LOGGER.info("writing project file "+ file);
             Files.writeString(Paths.get(folder, project.getProjectId(), file.getName()), file.getCode());
         }
     }

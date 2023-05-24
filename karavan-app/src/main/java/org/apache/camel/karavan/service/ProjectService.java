@@ -28,6 +28,12 @@ import org.eclipse.microprofile.health.HealthCheck;
 import org.eclipse.microprofile.health.HealthCheckResponse;
 import org.eclipse.microprofile.health.Readiness;
 import org.jboss.logging.Logger;
+
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import org.bson.Document;
 
 import javax.enterprise.context.ApplicationScoped;
@@ -35,9 +41,11 @@ import javax.enterprise.inject.Default;
 import javax.inject.Inject;
 import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 
@@ -187,16 +195,34 @@ public class ProjectService implements HealthCheck{
         return project;
     }
 
-    public List<ProjectFile> getProjectFilesFromDocument(List<Document> documentFiles){
+    public List<ProjectFile> getProjectFilesFromDocument(List<Document> documentFiles) throws JsonMappingException, JsonProcessingException{
         List<ProjectFile> files = new ArrayList<>();
         for(Document doc : documentFiles){
             ProjectFile pf = new ProjectFile();
             pf.setName(doc.getString("name"));
             pf.setCode(doc.getString("code"));
             pf.setLastUpdate(doc.getLong("lastCommitTimestamp"));
+            Document lastCommitsDoc = (Document) doc.get("lastCommits");
+            LOGGER.info(lastCommitsDoc);
+            Set<String> keys = lastCommitsDoc.keySet();
+            Map<String,String> lastcommits = new HashMap<>();
+            for (String key : keys) {
+                LOGGER.info("github commits" + key + (String) lastCommitsDoc.get(key) + pf.getName());
+                lastcommits.put(key,(String) lastCommitsDoc.get(key));
+            }
+            pf.setLastCommit(lastcommits);
             files.add(pf);
         }
         return files;
+    }
+
+    public boolean isProjectFileExists(List<ProjectFile> files, String name) {
+        for (ProjectFile file : files) {
+            if (file.getName().equals(name)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     public Map<String,String> commitAndPushProject(String projectId, String commitMessage,String userName , String accessToken , String repoUri, String branch,String file,String isConflictResolved,String repoOwner,String userEmail,String userId) throws Exception {
@@ -204,7 +230,6 @@ public class ProjectService implements HealthCheck{
         Project userProject= getProjectFromDocument(projectDocument);
         List<Document> documentFiles =  mongoService.getProjectFiles(userId, projectId);
         List<ProjectFile> files =  getProjectFilesFromDocument(documentFiles);
-        LOGGER.info("Commit and push project file selected " + file);
         if(!file.equals(".")){
             Iterator<ProjectFile> iterator = files.iterator();
             while (iterator.hasNext()) {
@@ -223,12 +248,15 @@ public class ProjectService implements HealthCheck{
             userProject.setLastCommitTimestamp(lastUpdate);
             mongoService.updateProject(userProject,userId);
             for(ProjectFile projectFile : files){
-                projectFile.setLastCommit(commitId);
+                Map<String,String> lastCommit = new HashMap<>();
+                lastCommit.put(commitId,repoUri+"/"+branch);
+                projectFile.setLastCommit(lastCommit);
+                projectFile.setLatestCommit(commitId);
                 mongoService.updateFile(projectFile);
-            }
+            }  
+        }
+        else{
             //get all project files from mongo and update files lastCommit with commitId
-
-
         }
         return commitAndPushProjectDetails;
     }
@@ -239,14 +267,23 @@ public class ProjectService implements HealthCheck{
         List<Document> documentFiles =  mongoService.getProjectFiles(userId, projectId);
         List<ProjectFile> files =  getProjectFilesFromDocument(documentFiles);
         Map<String,String> pullProjectDetails = gitService.pullProject(userProject, files,repoOwner,accessToken,repoUri,branch);
+        String commitId ="";
+        if(pullProjectDetails.get("commitId")!=null){
+            commitId = pullProjectDetails.get("commitId");
+        }
         if(pullProjectDetails.get("newFiles")!=null){
             String newFiles = pullProjectDetails.get("newFiles");
             String[] newFilesArray = newFiles.split("\n");
             for(String newFile : newFilesArray){
+                if(!isProjectFileExists(files,newFile)){
                 String fileCode = pullProjectDetails.get(newFile);
-                ProjectFile file = new ProjectFile(newFile, fileCode, projectId, Instant.now().toEpochMilli(),userId);
+                Map<String,String> lastCommit = new HashMap<>();
+                lastCommit.put("commitId",commitId);
+                lastCommit.put("repoBranchUri",repoUri+"/"+branch);
+                ProjectFile file = new ProjectFile(newFile, fileCode, projectId, Instant.now().toEpochMilli(),userId,lastCommit,commitId);
                 mongoService.createFile(file);
                 pullProjectDetails.remove(newFile);
+                }
             }
             pullProjectDetails.remove("newFiles");
         }
