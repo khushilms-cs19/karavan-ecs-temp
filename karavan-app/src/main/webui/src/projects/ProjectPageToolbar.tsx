@@ -20,6 +20,9 @@ import PushIcon from "@patternfly/react-icons/dist/esm/icons/code-branch-icon";
 import {KaravanApi} from "../api/KaravanApi";
 import {ResolveMergeConflictsModal} from "./ResolveMergeConflictsModal";
 import {StorageApi} from "../api/StorageApi";
+import JSZip from 'jszip';
+import FileSaver from 'file-saver';
+import { quarkusDeployLocalScript, quarkusExportScript, quarkusRunScript, quarkusTestScript, readmeContent, runtimeCheckScript, springDeployLocalScript, springRunScript, springTestScript, srpingExportScript } from './scriptsContent';
 
 interface Props {
     project: Project,
@@ -27,6 +30,7 @@ interface Props {
     isTemplates: boolean,
     isKamelets: boolean,
     config: any,
+    files: ProjectFile[],
     file?: ProjectFile,
     mode: "design" | "code",
     editAdvancedProperties: boolean,
@@ -215,6 +219,37 @@ export class ProjectPageToolbar extends React.Component<Props> {
         });
     }
 
+    downloadAll = () => {
+        const files = this.props.files;
+        const projectName = this.props.project?.name;
+        const zip = new JSZip();
+
+        const project = zip.folder('project');
+        for(var i=0; i<files.length; i++) {
+            console.log('files:', files[i].name);
+            project?.file(files[i].name, files[i].code);
+        }
+
+        const quarkusDeploy =  zip.folder('quarkus-deploy');
+        quarkusDeploy?.file('deploy-local.sh',quarkusDeployLocalScript);
+        quarkusDeploy?.file('run.sh',quarkusRunScript(projectName));
+        quarkusDeploy?.file('test.sh',quarkusTestScript);
+        quarkusDeploy?.file('export.sh',quarkusExportScript(projectName));
+
+        const springDeploy = zip.folder('spring-deploy');
+        springDeploy?.file('deploy-local.sh',springDeployLocalScript);
+        springDeploy?.file('run.sh',springRunScript(projectName));
+        springDeploy?.file('test.sh',springTestScript);
+        springDeploy?.file('export.sh',srpingExportScript(projectName));
+
+        zip.file('Readme.md',readmeContent);
+        zip.file('runtime-check.sh',runtimeCheckScript);
+
+        zip.generateAsync({type:"blob"}).then(function(content:any) {
+            FileSaver.saveAs(content,projectName + ".zip" );
+        });
+    }
+
     getTemplatesToolbar() {
         const {file, editAdvancedProperties, needCommit} = this.props;
         const {isPushing} = this.state;
@@ -331,6 +366,13 @@ export class ProjectPageToolbar extends React.Component<Props> {
                                 </Button>
                             </Tooltip>
                         </FlexItem>
+                        <FlexItem>
+                        <Tooltip content="Download all the source files." position='bottom-end'>
+                            <Button isSmall variant='secondary' icon={<DownloadIcon/>} onClick={e => this.downloadAll()}>
+                                Download
+                                </Button>
+                            </Tooltip>
+                    </FlexItem>
                 </Flex>
             </ToolbarContent>
         </Toolbar>
