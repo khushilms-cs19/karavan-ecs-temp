@@ -14,6 +14,8 @@ interface Props {
   saveFile: (file: ProjectFile) => void;
   setConflictResolvedForBranch : () => void;
   lastCommitId: string;
+  repoUri: string;
+  branch: string;
 }
 
 interface State {
@@ -115,7 +117,13 @@ export class ResolveMergeConflictsModal extends React.Component<Props, State> {
       // this.props.setIsConflictModalOpen(true);
     }
     else if(file){
-        const updatedFile = new ProjectFile(file.fileName,this.props.projectId,file.fileContent, Date.now(), this.props.lastCommitId)
+         const lastCommit = {
+          "commitId": this.props.lastCommitId,
+          "repoUri": this.props.repoUri+"/"+this.props.branch,
+         }
+        const updatedFile = new ProjectFile(file.fileName,this.props.projectId,file.fileContent, Date.now(), lastCommit,this.props.lastCommitId);
+        console.log("updated file", updatedFile);
+
         this.setState((prevState) => ({
           isConflictResolved: prevState.isConflictResolved.set(file.fileName, true),
         }));

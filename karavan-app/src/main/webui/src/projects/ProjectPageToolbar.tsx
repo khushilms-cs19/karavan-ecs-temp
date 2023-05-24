@@ -160,6 +160,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
                         fileDiffCodeMap.set(file,res.data[file]);
                     });
                     fileDiffCodeMap.delete("isConflictPresent");
+                    fileDiffCodeMap.delete("commitId");
                     this.setState({isConflictModalOpen: true,fileDiffCodeMap: fileDiffCodeMap,lastCommitId: res.data.commitId});
                 }
                 else{
@@ -205,6 +206,7 @@ export class ProjectPageToolbar extends React.Component<Props> {
                         fileDiffCodeMap.set(file,res.data[file]);
                     });
                     fileDiffCodeMap.delete("isConflictPresent");
+                    fileDiffCodeMap.delete("commitId");
                     this.setState({isConflictModalOpen: true,fileDiffCodeMap: fileDiffCodeMap});
                 }
                 else{
@@ -270,6 +272,8 @@ export class ProjectPageToolbar extends React.Component<Props> {
                 saveFile = {this.props.saveFile}
                 setConflictResolvedForBranch = {this.setConflictResolvedForBranch}
                 lastCommitId = {this.state.lastCommitId}
+                repoUri = {this.state.repoUri}
+                branch = {this.state.branch}
                   /> }
             <ToolbarContent>
                 <Flex className="toolbar" direction={{default: "row"}} alignItems={{default: "alignItemsCenter"}}>

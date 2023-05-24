@@ -193,18 +193,25 @@ export class ProjectPage extends React.Component<Props, State> {
         navigator.clipboard.writeText(data);
     }
 
-    postCode = async (file: any) => {
+    postCode = async (file: ProjectFile|undefined) => {
+        var lastCommits = this.state.files.find((f: any) => f.name === file?.name)?.lastCommits;
+        lastCommits = {...lastCommits, ...file?.lastCommits}
+        console.log("before map"+lastCommits);
+        lastCommits = new Map([...Object.entries(lastCommits || {}), ...Object.entries(file?.lastCommits || {})]);
+        console.log("before map"+lastCommits);
         axios.put(`/${API_URL}/file`, {
             userId: 1,
             projectId: file?.projectId,
             name: file?.name,
             code: file?.code,
-            lastUpdate: file?.lastUpdate
+            lastUpdate: file?.lastUpdate,
+            lastCommits:Object.fromEntries(lastCommits), 
+            latestCommit: file?.latestCommit,
         })
         .then(res => {
             if (res.status === 201) {
                 console.log("code updated");
-            } else {
+            } else {                
             }
         });
         console.log("postCode", file);

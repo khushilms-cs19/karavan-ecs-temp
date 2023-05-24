@@ -78,18 +78,24 @@ export class ProjectFile {
     projectId: string = '';
     code: string = '';
     lastUpdate: number;
-    lastCommit: string = '';
+    // lastCommit: string = '';
+    lastCommits: any = {};
+    latestCommit: string = '';
 
-    constructor(name: string, projectId: string, code: string, lastUpdate: number,lastCommit?: string) {
+    constructor(name: string, projectId: string, code: string, lastUpdate: number,lastCommit?: any,latestCommit?:string) {
         this.name = name;
         this.projectId = projectId;
         this.code = code;
         this.lastUpdate = lastUpdate;
-        this.lastCommit = lastCommit ?? '';
+        if (lastCommit) {
+            this.lastCommits[lastCommit.repoUri] = lastCommit.commitId;
+        }
+        this.latestCommit = latestCommit||"";
     }
 
-    public setLastCommit(lastCommit: string) {
-        this.lastCommit = lastCommit;
+    public setLastCommit(lastCommit: any) {
+        this.lastCommits[lastCommit.repoUri] = lastCommit.commitId;
+        // this.lastCommit = lastCommit;
     }
 
 }
