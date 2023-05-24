@@ -635,10 +635,17 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
             for (String project : projects) {
                 Map<String, String> filesRead = readProjectFilesFromFolder(folder, project);
                 List<GitRepoFile> files = new ArrayList<>(filesRead.size());
+                String projectPathString = folder + File.separator + project;
+                if(Files.isDirectory(Paths.get(projectPathString))){
+                    projectPathString = project+File.separator;
+                }
+                else{
+                    projectPathString = "";
+                }
                 for (Map.Entry<String, String> entry : filesRead.entrySet()) {
                     String name = entry.getKey();
                     String body = entry.getValue();
-                    Tuple2<String, Integer> fileCommit = lastCommit(git, project + File.separator + name);
+                    Tuple2<String, Integer> fileCommit = lastCommit(git, projectPathString+ name);
                     files.add(new GitRepoFile(name, Integer.valueOf(fileCommit.getItem2()).longValue() * 1000, body));
                 }
                 Tuple2<String, Integer> commit = lastCommit(git, project);
@@ -658,48 +665,90 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
     private List<String> readProjectsFromFolder(String folder, String existingProjects, String... filter) {
         LOGGER.info("Read projects from " + folder);
         List<String> files = new ArrayList<>();
+        HashSet<String> compatibleFiles = new HashSet<>(Arrays.asList("json", "yaml", "java", "properties"));
         existingProjects = existingProjects!=null?existingProjects:"";
+        //check with id not with name
         HashSet<String> existingProjectsSet = new HashSet<>(Arrays.asList(existingProjects.split(",")));
         vertx.fileSystem().readDirBlocking(folder).forEach(path -> {
             LOGGER.info("Read path " + path);
             String[] filenames = path.split(File.separator);
             String folderName = filenames[filenames.length - 1];
             LOGGER.info("Read folder " + folderName);
+            int lastDotIndex = folderName.lastIndexOf(".");
+            String extension = "";
+            if (lastDotIndex != -1 && lastDotIndex < folderName.length() - 1) {
+                    extension = folderName.substring(lastDotIndex + 1);
+            }
             if (folderName.startsWith(".")) {
                 // skip hidden
-            } else if (Files.isDirectory(Paths.get(path)) && !existingProjectsSet.contains(folderName) ) {
+            } else if (Files.isDirectory(Paths.get(path)) && !existingProjectsSet.contains(folderName.toLowerCase()) ) {
                 if (filter == null || Arrays.stream(filter).filter(f -> f.equals(folderName)).findFirst().isPresent()) {
                     LOGGER.info("Importing project from folder " + folderName);
                     files.add(folderName);
                     //gives me all folder existing in specified github repo
                 }
             }
+            else if(Files.isRegularFile(Paths.get(path)) && compatibleFiles.contains(extension) && !existingProjectsSet.contains(folderName.toLowerCase())){
+                files.add(folderName);
+            }
         });
         return files;
     }
 
     private Map<String, String> readProjectFilesFromFolder(String repoFolder, String projectFolder) {
-        LOGGER.infof("Read files from %s/%s", repoFolder, projectFolder);
-        HashSet<String> compatibleFiles = new HashSet<>(Arrays.asList("json", "yaml", "java", "properties"));
         Map<String, String> files = new HashMap<>();
-        vertx.fileSystem().readDirBlocking(repoFolder + File.separator + projectFolder).forEach(f -> {
-            String[] filenames = f.split(File.separator);
-            String filename = filenames[filenames.length - 1];
-            Path path = Paths.get(f);
+        String projectPathString = repoFolder + File.separator + projectFolder;
+        HashSet<String> compatibleFiles = new HashSet<>(Arrays.asList("json", "yaml", "java", "properties"));
+        Path projectPath = Paths.get(projectPathString);
+        if(Files.isRegularFile(projectPath)){
+            readProjectFilesFromRepoFolder(repoFolder, projectFolder);
+        }
+        else if (Files.isDirectory(Paths.get(repoFolder + File.separator + projectFolder))){
+            vertx.fileSystem().readDirBlocking(repoFolder + File.separator + projectFolder).forEach(f -> {
+                String[] filenames = f.split(File.separator);
+                String filename = filenames[filenames.length - 1];
+                Path path = Paths.get(f);
+                int lastDotIndex = filename.lastIndexOf(".");
+                String extension = "";
+                if (lastDotIndex != -1 && lastDotIndex < filename.length() - 1) {
+                     extension = filename.substring(lastDotIndex + 1);
+                }
+                if (!filename.startsWith(".") && !Files.isDirectory(path)&& compatibleFiles.contains(extension)) {
+                    LOGGER.info("Importing file " + filename);
+                    try {
+                        files.put(filename, Files.readString(path));
+                    } catch (IOException e) {
+                        LOGGER.error("Error during file read", e);
+                    }
+                }
+            });
+        }
+        return files;
+    }
+    private Map<String, String> readProjectFilesFromRepoFolder(String repoFolder, String projectFile) {
+        String filePath = repoFolder + File.separator + projectFile;
+        HashSet<String> compatibleFiles = new HashSet<>(Arrays.asList("json", "yaml", "java", "properties"));
+        Path path = Paths.get(filePath);
+        Map<String, String> files = new HashMap<>();
+        if (Files.isRegularFile(path)) {
+            String filename = path.getFileName().toString();
             int lastDotIndex = filename.lastIndexOf(".");
             String extension = "";
             if (lastDotIndex != -1 && lastDotIndex < filename.length() - 1) {
-                 extension = filename.substring(lastDotIndex + 1);
+                extension = filename.substring(lastDotIndex + 1);
             }
-            if (!filename.startsWith(".") && !Files.isDirectory(path)&& compatibleFiles.contains(extension)) {
+            if (!filename.startsWith(".") && compatibleFiles.contains(extension)) {
                 LOGGER.info("Importing file " + filename);
                 try {
+                    LOGGER.info("File content " + Files.readString(path));
                     files.put(filename, Files.readString(path));
                 } catch (IOException e) {
                     LOGGER.error("Error during file read", e);
                 }
             }
-        });
+        } else {
+            LOGGER.error("The 'shash' file does not exist or is not a regular file.");
+        }
         return files;
     }
 

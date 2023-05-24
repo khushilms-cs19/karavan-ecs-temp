@@ -295,9 +295,10 @@ public class ProjectService implements HealthCheck{
         List<GitRepo> repoProjects = gitService.getProjectsFromGit(repoOwner,accessToken,repoUri,branch,projects);
         for(GitRepo repoProject : repoProjects){
             String propertiesFile = ServiceUtil.getPropertiesFile(repoProject);
-            String projectName = ServiceUtil.getProjectName(propertiesFile);
-            String projectDescription = ServiceUtil.getProjectDescription(propertiesFile);
-            String runtime = ServiceUtil.getProjectRuntime(propertiesFile);
+            String projectName = propertiesFile!=null?ServiceUtil.getProjectName(propertiesFile):repoProject.getName();
+            String projectDescription =  propertiesFile!=null?ServiceUtil.getProjectDescription(propertiesFile):repoProject.getName();
+            String runtime = propertiesFile!=null?ServiceUtil.getProjectRuntime(propertiesFile):"quarkus";
+            LOGGER.info("Import project from Git " + projectName + projectDescription + runtime);
             Project project = new Project(repoProject.getName(), projectName, projectDescription, runtime,repoProject.getCommitId(),userId);
             mongoService.createProject(project);
             for(GitRepoFile repoFile : repoProject.getFiles()){
