@@ -313,7 +313,7 @@ export class KaravanApi {
     }
 
     static async pipelineRun(project: Project, environment: string, after: (res: AxiosResponse<any>) => void) {
-        instance.post('el-event-listener-quarkus:8080', {
+        instance.post('http://el-event-listener-quarkus:8080', {
           "git_repo": "https://github.com/durgapmenon/karavan-usecases",
           "git_branch": "main",
           "project": "rest-example",
