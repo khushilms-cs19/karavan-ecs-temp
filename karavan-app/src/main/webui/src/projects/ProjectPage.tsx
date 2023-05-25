@@ -194,19 +194,18 @@ export class ProjectPage extends React.Component<Props, State> {
     }
 
     postCode = async (file: ProjectFile|undefined) => {
+        const project =  this.props.project;
         var lastCommits = this.state.files.find((f: any) => f.name === file?.name)?.lastCommits;
         lastCommits = {...lastCommits, ...file?.lastCommits}
-        console.log("before map"+lastCommits);
         lastCommits = new Map([...Object.entries(lastCommits || {}), ...Object.entries(file?.lastCommits || {})]);
-        console.log("before map"+lastCommits);
         axios.put(`/${API_URL}/file`, {
             userId: 1,
             projectId: file?.projectId,
             name: file?.name,
             code: file?.code,
-            lastUpdate: file?.lastUpdate,
-            lastCommits:Object.fromEntries(lastCommits), 
-            latestCommit: file?.latestCommit,
+            lastUpdate: Date.now(),
+            lastCommits:Object.fromEntries(lastCommits) || "", 
+            latestCommit: file?.latestCommit || "",
         })
         .then(res => {
             if (res.status === 201) {
@@ -214,6 +213,21 @@ export class ProjectPage extends React.Component<Props, State> {
             } else {                
             }
         });
+
+        await axios.put(`/${API_URL}/project`, {
+            name: project.name,
+            description: project.description,
+            projectId: project.projectId,
+            runtime: project.runtime,
+            lastCommit: file?.latestCommit ||"",
+            lastCommitTimestamp: Date.now(),
+            userId: 1
+        })
+            .then((response) => {
+                console.log(response);
+            }, (error) => {
+                console.log(error);
+            });
         console.log("postCode", file);
     }
 

@@ -197,8 +197,10 @@ export class ProjectsPage extends React.Component<Props, State> {
                     onChange={e => this.setState({ filter: e })} />
             </ToolbarItem>
             <ToolbarItem>
-                <Button icon={<PlusIcon />} onClick={e => this.setState({ isCreateModalOpen: true, isCopy: false })}>Create</Button>
-                <Button icon={<PlusIcon/>} onClick={e => this.setState({isUploadModalOpen: true, isCopy: false})}>Upload</Button>
+                <Flex className="toolbar" direction={{default: "row"}} alignItems={{default: "alignItemsCenter"}}>
+                    <Button icon={<PlusIcon />} onClick={e => this.setState({ isCreateModalOpen: true, isCopy: false })}>Create</Button>
+                    <Button icon={<PlusIcon/>} onClick={e => this.setState({isUploadModalOpen: true, isCopy: false})}>Upload</Button>
+                </Flex>
             </ToolbarItem>
         </ToolbarContent>
     </Toolbar>);

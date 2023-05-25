@@ -18,7 +18,7 @@ export class Project {
             this.description = args[2];
             this.runtime = args[3];
             this.lastCommit = args[4];
-            this.lastCommitTimestamp = args[5];
+            this.lastCommitTimestamp = new Date().getTime();
             return;
         }
     }

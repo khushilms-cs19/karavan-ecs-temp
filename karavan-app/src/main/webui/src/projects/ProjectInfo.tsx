@@ -189,7 +189,8 @@ export class ProjectInfo extends React.Component<Props, State> {
                 <FlexItem>
                     <Tooltip content={project?.lastCommit} position={"right"}>
                         <Label color={color}>
-                            {/* {project?.lastCommit ? project?.lastCommit?.substr(0, 7) : "-"} */}
+                            {project?.lastCommit ? project?.lastCommit?.substr(0, 7) : "-"}
+                            {/* {project?.lastCommit ? project?.lastCommit : "-"} */}
                         </Label>
                     </Tooltip>
                 </FlexItem>
@@ -366,7 +367,7 @@ export class ProjectInfo extends React.Component<Props, State> {
     }
 
     getProjectDescription() {
-        const {project} = this.state;
+        const {project} = this.props;
         return (<DescriptionList isHorizontal>
             <DescriptionListGroup>
                 <DescriptionListTerm>Project ID</DescriptionListTerm>
