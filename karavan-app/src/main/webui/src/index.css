@@ -338,3 +338,14 @@
 .projects-page .pf-c-table.pf-m-compact tr:not(.pf-c-table__expandable-row) > *:last-child {
   --pf-c-table--cell--PaddingRight: 0;
 }
+
+.breadcrumb-custom{
+  color: #06c;
+  cursor: pointer;
+}
+
+.breadcrumb-custom:hover{
+  text-decoration: underline;
+  text-underline-offset: 1.5px;
+  color: #004080;
+}

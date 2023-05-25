@@ -129,7 +129,7 @@ export class ProjectPage extends React.Component<Props, State> {
         return project ? files.filter(f => f.lastUpdate > project.lastCommitTimestamp).length > 0 : false;
     }
 
-    onRefresh = () => {
+    onRefresh = async () => {
         if (this.props.project) {
             KaravanApi.getProject(this.props.project.projectId, (project: Project) => {
                 this.setState({project: project, key: Math.random().toString()});
@@ -159,6 +159,16 @@ export class ProjectPage extends React.Component<Props, State> {
                 });
             }
         }
+        await axios.get(`/${API_URL}/files/1/${this.state.project?.projectId}`)
+            .then(res => {
+                this.setState(prevState => ({
+                    ...prevState,
+                    dbFiles: res.data
+                  }));
+            })
+            .catch(err => {
+                console.error(err);
+            });
     }
 
     isBuildIn(): boolean {
@@ -281,7 +291,8 @@ export class ProjectPage extends React.Component<Props, State> {
             {isFile &&
                 <div>
                     <Breadcrumb>
-                        <BreadcrumbItem to="#" onClick={event => {
+                        <BreadcrumbItem to="" className='breadcrumb-custom'
+                        onClick={event => {
                             this.setState({file: undefined})
                             this.onRefresh();
                         }}>
