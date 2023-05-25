@@ -312,7 +312,7 @@ export class ProjectPage extends React.Component<Props, State> {
             {isFile &&
                 <div>
                     <Breadcrumb>
-                        <BreadcrumbItem to="" className='breadcrumb-custom'
+                        <BreadcrumbItem className='breadcrumb-custom'
                         onClick={event => {
                             this.setState({file: undefined})
                             this.onRefresh();

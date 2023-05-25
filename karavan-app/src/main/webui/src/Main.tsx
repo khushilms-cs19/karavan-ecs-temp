@@ -1,17 +1,14 @@
 import React from 'react';
-import { BrowserRouter, Route, Routes, Link} from 'react-router-dom';
+import { BrowserRouter, Route, Routes } from 'react-router-dom';
 import {
     Page,
     Button,
     Flex,
     FlexItem,
     Tooltip,
-    Divider, 
-    Popover,
-    Badge
+    Divider, Popover, Badge
 } from '@patternfly/react-core';
 import { KaravanApi } from "./api/KaravanApi";
-import { SsoApi } from "./api/SsoApi";
 import { KameletApi } from "karavan-core/lib/api/KameletApi";
 import './designer/karavan.css';
 import { v4 as uuidv4 } from "uuid";
@@ -27,6 +24,7 @@ import { DashboardPage } from "./dashboard/DashboardPage";
 import Navbar from "./navbar/Navbar";
 import { TimesIcon } from "@patternfly/react-icons";
 import { LandingPage } from './pages/landingPage/LandingPage';
+
 class ToastMessage {
     id: string = ''
     text: string = ''
@@ -69,14 +67,16 @@ interface State {
     filename: string,
     key: string,
     showUser?: boolean,
-    showMenuModal: boolean
+    showMenuModal: boolean,
+    dashboardClicked: boolean,
+    projectClicked: boolean
 }
 
 export class Main extends React.Component<Props, State> {
 
     public state: State = {
         config: {},
-        pageId:  window.sessionStorage.getItem("pageId") ||"projects",
+        pageId: "projects",
         projects: [],
         isModalOpen: false,
         alerts: [],
@@ -85,8 +85,11 @@ export class Main extends React.Component<Props, State> {
         filename: '',
         key: '',
         showMenuModal: false,
-        project: JSON.parse(localStorage.getItem('project') || '{}')
+        project: JSON.parse(localStorage.getItem('project') || '{}'),
+        dashboardClicked: false,
+        projectClicked: false
     };
+
 
     designer = React.createRef();
 
@@ -95,22 +98,6 @@ export class Main extends React.Component<Props, State> {
     }
 
     componentDidMount() {
-        KaravanApi.getAuthType((authType: string) => {
-            console.log("authType", authType);
-            if (authType === 'oidc') {
-                SsoApi.auth(() => {
-                    KaravanApi.getMe((user: any) => {
-                        console.log("me", user);
-                        this.getData();
-                    });
-                });
-            } else {
-                this.setState({ key: Math.random().toString() })
-            }
-            if (KaravanApi.isAuthorized || KaravanApi.authType === 'public') {
-                this.getData();
-            }
-        });
         this.getData();
     }
 
@@ -169,6 +156,11 @@ export class Main extends React.Component<Props, State> {
         this.setState({ alerts: this.state.alerts.filter(a => a.id !== id) })
     }
 
+    handlePageId = (pageId: string) => {
+        this.setState({pageId: pageId});
+        this.setState({ projectClicked: false });
+    }
+
     pageNav = () => {
         const pages: MenuItem[] = [
             new MenuItem("dashboard", "Dashboard", <DashboardIcon color={this.state.pageId === 'dashboard' ? 'white' : 'var(--mck-deep-blue)'} />),
@@ -179,7 +171,7 @@ export class Main extends React.Component<Props, State> {
             <FlexItem alignSelf={{ default: "alignSelfCenter" }}  >
                 <Flex direction={{ default: "row" }} justifyContent={{ default: "justifyContentCenter" }} alignItems={{ default: "alignItemsCenter" }} >
                     <FlexItem>
-                        <Tooltip entryDelay={1000} className="logo-tooltip" content={"Apache Camel Karavan " + this.state.config.version}
+                        <Tooltip className="logo-tooltip" content={"Apache Camel Karavan " + this.state.config.version}
                             position={"right"}>
                             {Icon()}
                         </Tooltip>
@@ -187,20 +179,18 @@ export class Main extends React.Component<Props, State> {
                     <FlexItem>
                         <span>Apache Karavan </span>
                     </FlexItem>
-                    <FlexItem onClick={() => this.setShowMenuModal(false)} style={{ cursor: "pointer" }}>
+                    <FlexItem onClick={() => this.setShowMenuModal(false)} style={{cursor:"pointer"}}>
                         <TimesIcon />
                     </FlexItem>
                 </Flex>
             </FlexItem>
             {
                 pages.map(page =>
-                    <Link key={page.pageId} to={`/${page.pageId}`} style={{ textDecoration: 'none', color:'black' }} onClick={()=> this.setShowMenuModal(false)}  >
                     <Flex key={page.pageId} direction={{ default: "column" }} alignItems={{ default: "alignItemsCenter" }} style={{cursor:"pointer"}}>
                         <FlexItem alignSelf={{ default: "alignSelfFlexStart" }}
                             className={this.state.pageId === page.pageId ? "menubar-button-selected" : ""}
-                            onClick={event => {
-                                this.setState({ pageId: page.pageId });
-                                window.sessionStorage.setItem("pageId", page.pageId);
+                            onClick={(event) => {
+                                this.handlePageId(page.pageId)
                             }}
                             style={{ width: "100%" }}>
                             <Button id={page.pageId} icon={page.icon} variant={"plain"}
@@ -210,34 +200,11 @@ export class Main extends React.Component<Props, State> {
                         </FlexItem>
                         {/* </Tooltip> */}
                     </Flex>
-                    </Link>
                 )
             }
             <FlexItem flex={{ default: "flex_2" }} alignSelf={{ default: "alignSelfCenter" }}>
                 <Divider />
             </FlexItem>
-            {/* {KaravanApi.authType !== 'public' &&
-                <FlexItem alignSelf={{ default: "alignSelfCenter" }}>
-                    <Popover
-                        aria-label="Current user"
-                        position={"right-end"}
-                        hideOnOutsideClick={false}
-                        isVisible={this.state.showUser === true}
-                        shouldClose={tip => this.setState({ showUser: false })}
-                        shouldOpen={tip => this.setState({ showUser: true })}
-                        headerContent={<div>{KaravanApi.me.userName}</div>}
-                        bodyContent={
-                            <Flex direction={{ default: "row" }}>
-                                {KaravanApi.me.roles && Array.isArray(KaravanApi.me.roles)
-                                    && KaravanApi.me.roles
-                                        .filter((r: string) => ['administrator', 'developer', 'viewer'].includes(r))
-                                        .map((role: string) => <Badge id={role} isRead>{role}</Badge>)}
-                            </Flex>
-                        }
-                    >
-                        <UserIcon className="avatar" />
-                    </Popover>
-                </FlexItem>} */}
         </Flex>)
     }
 
@@ -249,89 +216,86 @@ export class Main extends React.Component<Props, State> {
 
     onProjectSelect = (project: Project) => {
         this.setState({ pageId: 'project', project: project });
-        localStorage.setItem('project', JSON.stringify(project));
     };
+
+    handleDashboardClick = () => {
+        this.setState({ dashboardClicked: true });
+    }
+
+    handleProjectClick = () => {
+        this.setState({ projectClicked: true });
+    }
 
     render() {
         return (
             <div>
             <BrowserRouter>
             <Routes>
-                <Route path="/" element={<LandingPage/>} />
-                <Route path="/projects" element={
-                    <Page className="karavan">
-                        <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
-                        <Flex direction={{ default: "row" }} style={{ width: "100%", height: "100%" }}
-                            alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
-                            {
-                                this.state.showMenuModal &&
-                                <FlexItem>
-                                    {this.pageNav()}
-                                </FlexItem>
-                            }
-                            <ProjectsPage 
-                                key={this.state.request}
-                                onSelect={this.onProjectSelect}
-                                toast={this.toast}
-                                config={this.state.config} 
-                            />
-                        </Flex>
-                    </Page>
+                <Route path="/main" element={
+                    <div>
+                        {!this.state.dashboardClicked &&
+                            <LandingPage handleDashboardClick={this.handleDashboardClick} />
+                        }
+                       {(this.state.dashboardClicked && this.state.pageId === 'projects' && !this.state.projectClicked) && (
+                        <Page className="karavan">
+                            <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
+                                <Flex direction={{ default: "row" }} style={{ width: "100%", height: "100%" }}
+                                alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
+                                {this.state.showMenuModal &&
+                                    <FlexItem>
+                                        {this.pageNav()}
+                                    </FlexItem>
+                                }
+                                <ProjectsPage 
+                                    key={this.state.request}
+                                    onSelect={this.onProjectSelect}
+                                    toast={this.toast}
+                                    config={this.state.config}
+                                    handleProjectClick={this.handleProjectClick}
+                                />
+                            </Flex>
+                        </Page>)}
+                        {
+                            this.state.pageId === 'dashboard' && (
+                                <Page className="karavan">
+                                    <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
+                                        <Flex direction={{ default: "row" }} style={{ width: "100%", height: "100%" }}
+                                        alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
+                                        {
+                                        this.state.showMenuModal &&
+                                        <FlexItem>
+                                            {this.pageNav()}
+                                        </FlexItem>
+                                        }
+                                        <DashboardPage 
+                                            key={this.state.request}
+                                            onSelect={this.onProjectSelect}
+                                            toast={this.toast}
+                                            config={this.state.config} 
+                                        />
+                                        </Flex>
+                                </Page>
+                            )
+                        }
+                        {this.state.projectClicked && (
+                            <Page className="karavan">
+                            <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
+                            <Flex direction={{ default: "row" }} style={{ width: "100%", height: "100%" }}
+                                alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
+                                {
+                                    this.state.showMenuModal &&
+                                    <FlexItem>
+                                        {this.pageNav()}
+                                    </FlexItem>
+                                }
+                                {this.state.project &&
+                                <ProjectPage key="projects" project={this.state.project} config={this.state.config} />
+                                }
+                            </Flex>
+                        </Page>
+                        )}
+                    </div>
                 } />
-                <Route path="/dashboard" element={
-                    <Page className="karavan">
-                        <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
-                        <Flex direction={{ default: "row" }} style={{ width: "100%", height: "100%" }}
-                            alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
-                            {
-                                this.state.showMenuModal &&
-                                <FlexItem>
-                                    {this.pageNav()}
-                                </FlexItem>
-                            }
-                            <DashboardPage 
-                                key={this.state.request}
-                                onSelect={this.onProjectSelect}
-                                toast={this.toast}
-                                config={this.state.config} 
-                            />
-                        </Flex>
-                    </Page>
-                } />
-                <Route path="/projects/:projectId" element={
-                    <Page className="karavan">
-                        <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
-                        <Flex direction={{ default: "row" }} style={{ width: "100%", height: "100%" }}
-                            alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
-                            {
-                                this.state.showMenuModal &&
-                                <FlexItem>
-                                    {this.pageNav()}
-                                </FlexItem>
-                            }
-                            {this.state.project &&
-                            <ProjectPage key="projects" project={this.state.project} config={this.state.config} />
-                            }
-                        </Flex>
-                    </Page>
-                } />
-                {/* <Route path="/projects/:projectId/:projectName" element={
-                    <Page className="karavan">
-                        <Navbar showMenuModal={this.state.showMenuModal} setShowMenuModal={this.setShowMenuModal} />
-                        <Flex direction={{ default: "row" }} style={{ width: "100%", height: "100%" }}
-                            alignItems={{ default: "alignItemsStretch" }} spaceItems={{ default: 'spaceItemsNone' }}>
-                            {
-                                this.state.showMenuModal &&
-                                <FlexItem>
-                                    {this.pageNav()}
-                                </FlexItem>
-                            }
-                            {this.state.project &&
-                            <ProjectPage key="projects" project={this.state.project} config={this.state.config} />
-                            }
-                        </Flex>
-                    </Page>
-                } /> */}
                 </Routes>
             </BrowserRouter>
             </div>

@@ -1,0 +1,114 @@
+.LoadingPage {
+  background: #051c2c;
+  background: linear-gradient(135deg, #051c2c 60%,#03339c 100%);
+  background: -webkit-linear-gradient(-45deg, #051c2c 60%, #03339c 100%);
+  min-height: 100vh;
+  /* font-size: calc(3px + 2vmin); */
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.LoadingPage .content {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+  background: #f8f8f8;
+  padding: 25px;
+  margin: 50px;
+  min-width: 55%;
+  min-height: 80vh;
+}
+
+.LoadingPage .content h2, h4 {
+  margin-top: 0;
+}
+
+.LoadingPage .content button {
+  width: 100%;
+}
+
+.LoadingPage .content .error-msg {
+  color: #E5546C
+}
+
+.LoadingPage .content svg{
+  height:98px;
+}
+
+.content h2{
+  margin: 15px 0;
+  font-size: 2.5rem;
+  color: var(--mck-deep-blue);
+}
+
+.content h1{
+  color: var(--mck-electric-blue);
+  font-size: 2rem;
+}
+
+.info-while-waiting{
+  margin-top: 50px;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap:50px;
+  align-items: center;
+  margin-bottom: 50px;
+}
+
+.info-while-waiting > img{
+  min-width: 200px;
+  max-width: 400px;
+  min-height: 200px;
+  max-height: 400px;
+}
+
+.info-while-waiting-para{
+  max-width: 400px;
+  font-family: 'Mckinsey-Sans-Light', sans-serif;
+  font-size: 1.4rem;
+}
+
+.spinner {
+  margin: auto;
+  width: 270px;
+  text-align: center;
+}
+
+.spinner > div {
+  width: 60px;
+  height: 60px;
+  background-color: var(--mck-deep-blue);
+
+  border-radius: 100%;
+  display: inline-block;
+  -webkit-animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+  animation: sk-bouncedelay 1.4s infinite ease-in-out both;
+}
+
+.spinner .bounce1 {
+  -webkit-animation-delay: -0.32s;
+  animation-delay: -0.32s;
+}
+
+.spinner .bounce2 {
+  -webkit-animation-delay: -0.16s;
+  animation-delay: -0.16s;
+}
+
+@-webkit-keyframes sk-bouncedelay {
+  0%, 80%, 100% { -webkit-transform: scale(0) }
+  40% { -webkit-transform: scale(1.0) }
+}
+
+@keyframes sk-bouncedelay {
+  0%, 80%, 100% {
+    -webkit-transform: scale(0);
+    transform: scale(0);
+  } 40% {
+      -webkit-transform: scale(1.0);
+      transform: scale(1.0);
+    }
+}
