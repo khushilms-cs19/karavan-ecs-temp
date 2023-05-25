@@ -139,6 +139,7 @@ public class MongoService {
         Document projectUpdate = new Document("$set", new Document("lastCommit", file.getLatestCommit()));
         database.getCollection("project_files").updateOne(fileFilter, fileUpdate);
         database.getCollection("projects").updateOne(projectFilter, projectUpdate);
+        System.out.println("Updated file :: " + file.toString());
         return file;
     }
 

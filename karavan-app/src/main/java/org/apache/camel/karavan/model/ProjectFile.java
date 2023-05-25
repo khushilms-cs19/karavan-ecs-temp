@@ -89,7 +89,7 @@ public class ProjectFile {
 
     public String getLastCommit(String repoBranchUri){
        
-        return lastCommits ==null?null:lastCommits.get(repoBranchUri);
+        return lastCommits ==null?"":lastCommits.get(repoBranchUri);
     }
     public void setLastCommit(Map<String,String> lastCommit){
         if (lastCommit != null) {

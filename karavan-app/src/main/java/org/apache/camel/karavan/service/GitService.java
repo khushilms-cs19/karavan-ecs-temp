@@ -175,7 +175,7 @@ public class GitService {
             return new GitConfig(uri, username, password, branch);
         }
     }
-
+ //last commit of the branch and path
     public String getLastCommit(Git git) throws NoHeadException, GitAPIException{
         Iterable<RevCommit> commits = git.log().setMaxCount(1).call();
         RevCommit branchCommit = null;
@@ -207,7 +207,8 @@ public class GitService {
         } catch (Exception e) {
             LOGGER.error("Error", e);
         }
-        String repoLastCommitId = getLastCommit(git);
+        Tuple2<String, Integer> repoCommit = lastCommit(git, project.getProjectId());
+        String repoLastCommitId =repoCommit.getItem1();
         String repoBranchUri = repoUri+"/"+branch;
         boolean isProjectExists = checkIfProjectExists(folder,"/"+project.getProjectId());
         Iterator<ProjectFile> Iterator = files.iterator();
@@ -230,7 +231,8 @@ public class GitService {
             if(isProjectExists && files.size()>0){
                 LOGGER.info("Pushing existing project which is not resolved");
                 Map<String,String> pushProjectDetails = pushExistingProject(git,folder, project, files,fileSelected,gitPushConfig,cred);
-                pushProjectDetails.put("commitId",repoLastCommitId);
+                Tuple2<String, Integer> commit = lastCommit(git, project.getProjectId());
+                pushProjectDetails.put("commitId",commit.getItem1());
                 return pushProjectDetails;
             }else{
                 LOGGER.info("Pushing new project");
@@ -546,7 +548,8 @@ public Map<String,String> pullProject(Project project, List<ProjectFile> files, 
         if(isProjectExists){
             LOGGER.info("pulling existing project");
             Map<String,String> pullProjectDetails =  pullExistingProject(git,folder, project, files,".",gitPushConfig,cred);
-            pullProjectDetails.put("commitId",repoLastCommitId);
+            Tuple2<String, Integer> commit = lastCommit(git, project.getProjectId());
+            pullProjectDetails.put("commitId",commit.getItem1());
             return pullProjectDetails;
         }
         return new HashMap<>();

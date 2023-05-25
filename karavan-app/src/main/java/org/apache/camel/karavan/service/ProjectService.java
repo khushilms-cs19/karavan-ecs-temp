@@ -202,7 +202,9 @@ public class ProjectService implements HealthCheck{
             ProjectFile pf = new ProjectFile();
             pf.setName(doc.getString("name"));
             pf.setCode(doc.getString("code"));
-            pf.setLastUpdate(doc.getLong("lastCommitTimestamp"));
+            pf.setLastUpdate(doc.getLong("lastUpdate"));
+            pf.setProjectId(doc.getString("projectId"));
+            pf.setUserId(doc.getString("userId"));
             Document lastCommitsDoc = (Document) doc.get("lastCommits");
             LOGGER.info(lastCommitsDoc);
             if(lastCommitsDoc != null){
@@ -233,6 +235,9 @@ public class ProjectService implements HealthCheck{
         Project userProject= getProjectFromDocument(projectDocument);
         List<Document> documentFiles =  mongoService.getProjectFiles(userId, projectId);
         List<ProjectFile> files =  getProjectFilesFromDocument(documentFiles);
+        for(ProjectFile pf : files){
+            LOGGER.info("Project files" + pf.toString());
+        }
         if(!file.equals(".")){
             Iterator<ProjectFile> iterator = files.iterator();
             while (iterator.hasNext()) {
@@ -250,9 +255,10 @@ public class ProjectService implements HealthCheck{
             userProject.setLastCommit(commitId);
             userProject.setLastCommitTimestamp(lastUpdate);
             mongoService.updateProject(userProject,userId);
+            LOGGER.info("Commit and push project updated " + files.size()+files);
             for(ProjectFile projectFile : files){
                 Map<String,String> lastCommit = new HashMap<>();
-                lastCommit.put(commitId,repoUri+"/"+branch);
+                lastCommit.put(repoUri+"/"+branch,commitId);
                 projectFile.setLastCommit(lastCommit);
                 projectFile.setLatestCommit(commitId);
                 mongoService.updateFile(projectFile);
