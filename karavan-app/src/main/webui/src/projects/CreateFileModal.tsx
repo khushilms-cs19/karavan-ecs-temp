@@ -46,7 +46,7 @@ export class CreateFileModal extends React.Component<Props, State> {
         await axios.post(`/${API_URL}/file`, {
             name: name+'.'+extension,
             projectId: this.props.project.projectId,
-            code: '',
+            code: '[]',
             lastUpdate: Date.now(),
             userId: 1,
         }).then(res => {
