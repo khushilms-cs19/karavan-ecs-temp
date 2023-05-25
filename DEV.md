@@ -48,7 +48,4 @@ mvn quarkus:dev
 cd karavan-core/
 npm install
 
-cd karavan-app/src/main/webui/
-npm install
-npm start
 ```

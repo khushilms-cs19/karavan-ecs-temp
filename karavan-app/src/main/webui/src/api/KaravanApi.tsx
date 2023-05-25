@@ -313,13 +313,25 @@ export class KaravanApi {
     }
 
     static async pipelineRun(project: Project, environment: string, after: (res: AxiosResponse<any>) => void) {
-        instance.post('/api/kubernetes/pipeline/' + environment, project)
-            .then(res => {
+        instance.post('el-event-listener-quarkus:8080', {
+          "git_repo": "https://github.com/durgapmenon/karavan-usecases",
+          "git_branch": "main",
+          "project": "rest-example",
+          "namespace": "durga"
+      }).then(res => {
                 after(res);
             }).catch(err => {
             after(err);
         });
     }
+    // static async pipelineRun(project: Project, environment: string, after: (res: AxiosResponse<any>) => void) {
+    //     instance.post('/api/kubernetes/pipeline/' + environment, project)
+    //         .then(res => {
+    //             after(res);
+    //         }).catch(err => {
+    //         after(err);
+    //     });
+    // }
 
     static async getPipelineLog(environment: string, pipelineRunName: string, after: (res: AxiosResponse<any>) => void) {
         instance.get('/api/kubernetes/pipeline/log/' + environment + "/" + pipelineRunName)
