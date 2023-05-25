@@ -1,7 +1,6 @@
 /* eslint-disable array-callback-return */
 /* eslint-disable jsx-a11y/anchor-is-valid */
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import intergrationImg from '../../resources/integration-img.png'
 import integrationImg2 from '../../resources/integration-img2.png'
 import {KIcon} from './ThreeDIcon';
@@ -64,7 +63,7 @@ export class LandingPage extends Component<Props, State> {
       {
         name: 'Samrat Das',
         img: samratImg,
-        designation: 'Engineer I,',
+        designation: 'Software Engineer I,',
         location: 'Bangalore'
       },
       {
