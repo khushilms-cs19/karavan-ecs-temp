@@ -317,6 +317,7 @@ export class ProjectsPage extends React.Component<Props, State> {
                             onChange={e => this.setState({ projectId: CamelUi.nameFromTitle(e) })} />
                     </FormGroup>
                     <FormGroup label="Runtime" fieldId="runtime" isRequired>
+                        {console.log(runtimes,"wekekekke")}
                         {runtimes?.map((r: string) => (
                             <Radio key={r} id={r} name={r} className="radio"
                                 isChecked={r === runtime}

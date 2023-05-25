@@ -66,7 +66,7 @@ export class ProjectsTableRow extends React.Component<Props, State> {
                 <Td isActionCell>
                     <Tooltip content={project.lastCommit} position={"bottom"}>
                         <Badge>
-                            {project.lastCommit?.substr(0, 7)}
+                            {/* {project.lastCommit?.substr(0, 7)} */}
                             {/* {project.lastCommit} */}
 
                         </Badge>
