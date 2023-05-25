@@ -1,0 +1,14 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: trigger-binding-quarkus
+spec:
+  params:
+    - name: git_repo
+      value: $(body.git_repo)
+    - name: git_revision
+      value: $(body.git_branch)
+    - name: project
+      value: $(body.project)
+    - name: namespace
+      value: $(body.namespace)

@@ -1,0 +1,12 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: event-listener-spring
+spec:
+  serviceAccountName: tekton-robot
+  triggers:
+    - name: spring-trigger
+      bindings:
+        - ref: trigger-binding-spring
+      template:
+        ref: trigger-template-spring

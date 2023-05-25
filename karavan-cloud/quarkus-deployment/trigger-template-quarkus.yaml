@@ -1,0 +1,41 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: trigger-template-quarkus
+spec:
+  params:
+    - name: git_repo
+      description: The git repository to clone from
+    - name: git_revision
+      description: The git revision to checkout
+    - name: project
+      description: The project id
+    - name: namespace
+      description: The namespace to deploy to
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: quarkus-pipeline-run-
+      spec:
+        pipelineRef:
+          name: karavan-pipeline-dev-quarkus
+        params:
+          - name: git_repo
+            value: "$(tt.params.git_repo)"
+          - name: git_revision
+            value: "$(tt.params.git_revision)"
+          - name: project
+            value: "$(tt.params.project)"
+          - name: namespace
+            value: "$(tt.params.namespace)"
+        serviceAccountName: pipeline
+        workspaces:
+          - name: karavan-m2-cache
+            persistentVolumeClaim:
+              claimName: karavan-m2-caches
+            subPath: dir
+          - name: karavan-jbang-cache
+            persistentVolumeClaim:
+              claimName: karavan-jbang-cache
+            subPath: dir

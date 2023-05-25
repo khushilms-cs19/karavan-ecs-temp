@@ -1,0 +1,12 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: event-listener-quarkus
+spec:
+  serviceAccountName: tekton-robot
+  triggers:
+    - name: quarkus-trigger
+      bindings:
+        - ref: trigger-binding-quarkus
+      template:
+        ref: trigger-template-quarkus

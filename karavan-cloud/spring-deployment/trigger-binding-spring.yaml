@@ -1,0 +1,10 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerBinding
+metadata:
+  name: trigger-binding-spring
+spec:
+  params:
+    - name: git_repo
+      value: $(body.git_repo)
+    - name: git_revision
+      value: $(body.git_branch)

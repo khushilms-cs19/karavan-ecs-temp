@@ -1,0 +1,35 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: trigger-template-spring
+spec:
+  params:
+    - name: git_repo
+      description: The git repository to clone from
+    - name: git_revision
+      description: The git revision to checkout
+  resourcetemplates:
+    - apiVersion: tekton.dev/v1beta1
+      kind: PipelineRun
+      metadata:
+        generateName: karavan-dev-spring-boot-pipeline-run-
+      spec:
+        pipelineRef:
+          name: karavan-pipeline-dev-spring-boot
+        params:
+          - name: git_repo
+            value: "$(tt.params.git_repo)"
+          - name: git_revision
+            value: "$(tt.params.git_revision)"
+          - name: PROJECT_ID
+            value: test
+        serviceAccountName: pipeline
+        workspaces:
+          - name: karavan-m2-cache
+            persistentVolumeClaim:
+              claimName: karavan-m2-cache
+            subPath: dir
+          - name: karavan-jbang-cache
+            persistentVolumeClaim:
+              claimName: karavan-jbang-cache
+            subPath: dir
