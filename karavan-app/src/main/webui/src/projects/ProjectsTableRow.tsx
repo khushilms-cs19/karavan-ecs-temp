@@ -1,5 +1,4 @@
 import React from 'react';
-import {Link} from "react-router-dom";
 import {
     Button,
     Badge,
@@ -18,7 +17,8 @@ interface Props {
     onProjectDelete: (project: Project) => void
     onProjectCopy: (project: Project) => void
     project: Project
-    deploymentStatuses: DeploymentStatus[],
+    deploymentStatuses: DeploymentStatus[]
+    handleProjectClick: () => void
 }
 
 interface State {
@@ -55,18 +55,20 @@ export class ProjectsTableRow extends React.Component<Props, State> {
                     </Tooltip>
                 </Td>
                 <Td>
-                    <Link to={`/projects/${project.projectId}`}>
-                        <Button style={{padding: '6px'}} variant={"link"} onClick={e => onSelect?.call(this, project)}>
-                            {project.projectId}
-                        </Button>
-                    </Link>
+                    <Button style={{padding: '6px'}} variant={"link"} onClick={(e) => {
+                            onSelect?.call(this, project); 
+                            this.props.handleProjectClick();
+                    }}>
+                        {project.projectId}
+                    </Button>
                 </Td>
                 <Td>{project.name}</Td>
                 <Td>{project.description}</Td>
                 <Td isActionCell>
                     <Tooltip content={project.lastCommit} position={"bottom"}>
                         <Badge>
-                            {/* {project.lastCommit?.substr(0, 7)} */}
+                            {/* {project.lastCommit.toString()?.substr(0, 7)} */}
+                            {/* {project.lastCommit} */}
                         </Badge>
                     </Tooltip>
                 </Td>

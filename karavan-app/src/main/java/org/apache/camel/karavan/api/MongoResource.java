@@ -77,4 +77,11 @@ public class MongoResource {
         return mongoService.updateFile(file);
     }
 
+    @PUT
+    @Produces(MediaType.APPLICATION_JSON)
+    @Consumes(MediaType.APPLICATION_JSON)
+    @Path("/project")
+    public Project updateProject(Project project) throws Exception {
+        return mongoService.updateProject(project,project.getUserId());
+    }
 }

@@ -132,10 +132,11 @@ public class MongoService {
      * for a project file and will update the last update time for the project
      * */
     public ProjectFile updateFile(ProjectFile file) {
+        System.out.println("Updating file :: " + file.toString());
         Document fileFilter = new Document("userId", file.getUserId()).append("projectId", file.getProjectId()).append("name", file.getName());
-        Document fileUpdate = new Document("$set", new Document("code", file.getCode()).append("lastUpdate", file.getLastUpdate()));
+        Document fileUpdate = new Document("$set", new Document("code", file.getCode()).append("lastUpdate", file.getLastUpdate()).append("lastCommits",file.getLastCommits()).append("latestCommit",file.getLatestCommit()));
         Document projectFilter = new Document("userId", file.getUserId()).append("projectId", file.getProjectId());
-        Document projectUpdate = new Document("$set", new Document("lastCommit", file.getLastUpdate()));
+        Document projectUpdate = new Document("$set", new Document("lastCommit", file.getLatestCommit()));
         database.getCollection("project_files").updateOne(fileFilter, fileUpdate);
         database.getCollection("projects").updateOne(projectFilter, projectUpdate);
         return file;

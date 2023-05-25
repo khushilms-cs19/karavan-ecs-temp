@@ -41,6 +41,7 @@ interface Props {
     config: any,
     onSelect: (project: Project) => void
     toast: (title: string, text: string, variant: 'success' | 'danger' | 'warning' | 'info' | 'default') => void
+    handleProjectClick: () => void
 }
 
 interface State {
@@ -197,8 +198,10 @@ export class ProjectsPage extends React.Component<Props, State> {
                     onChange={e => this.setState({ filter: e })} />
             </ToolbarItem>
             <ToolbarItem>
-                <Button icon={<PlusIcon />} onClick={e => this.setState({ isCreateModalOpen: true, isCopy: false })}>Create</Button>
-                <Button icon={<PlusIcon/>} onClick={e => this.setState({isUploadModalOpen: true, isCopy: false})}>Upload</Button>
+                <Flex className="toolbar" direction={{default: "row"}} alignItems={{default: "alignItemsCenter"}}>
+                    <Button icon={<PlusIcon />} onClick={e => this.setState({ isCreateModalOpen: true, isCopy: false })}>Create</Button>
+                    <Button icon={<PlusIcon/>} onClick={e => this.setState({isUploadModalOpen: true, isCopy: false})}>Upload</Button>
+                </Flex>
             </ToolbarItem>
         </ToolbarContent>
     </Toolbar>);
@@ -273,8 +276,6 @@ export class ProjectsPage extends React.Component<Props, State> {
                 after?.call(this);
             } else {
                 console.log(res);
-                // Todo notification
-                //need to render to an error page
             }
             this.setState({isUploadModalOpen: false, isUploading: false});
         });
@@ -315,6 +316,7 @@ export class ProjectsPage extends React.Component<Props, State> {
                             onChange={e => this.setState({ projectId: CamelUi.nameFromTitle(e) })} />
                     </FormGroup>
                     <FormGroup label="Runtime" fieldId="runtime" isRequired>
+                        {console.log(runtime)}
                         {runtimes?.map((r: string) => (
                             <Radio key={r} id={r} name={r} className="radio"
                                 isChecked={r === runtime}
@@ -466,7 +468,9 @@ export class ProjectsPage extends React.Component<Props, State> {
                             onProjectDelete={this.onProjectDelete}
                             onProjectCopy={project1 => this.setState({ isCreateModalOpen: true, isCopy: true, projectToCopy: project1 })}
                             project={project}
-                            deploymentStatuses={this.state.deploymentStatuses} />
+                            deploymentStatuses={this.state.deploymentStatuses} 
+                            handleProjectClick={this.props.handleProjectClick}
+                            />
                     ))}
                     {allProjs.length === 0 && this.getEmptyState()}
                 </Tbody>
