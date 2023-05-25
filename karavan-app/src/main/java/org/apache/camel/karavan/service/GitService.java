@@ -425,7 +425,7 @@ public class GitService {
                 result.put("isConflictPresent","true");
             }
         }
-        else if(gitOperation.equals("Pull")){
+        else if(gitOperation.equals("Pull") && entry.getKey()!="/dev/null"){
             String newFileCode = removeConflictMarkers(changedFileContent);
             if(result.get("newFiles")!=null){
                 result.put("newFiles",result.get("newFiles")+"\n"+entry.getKey().split("/")[1]);
