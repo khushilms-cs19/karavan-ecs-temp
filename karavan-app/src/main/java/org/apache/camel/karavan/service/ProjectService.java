@@ -190,6 +190,7 @@ public class ProjectService implements HealthCheck{
         project.setDescription(projectDocument.getString("description"));
         project.setRuntime(projectDocument.getString("runtime"));
         project.setLastCommit(projectDocument.getString("lastCommit"));
+        // project.setLastCommit(projectDocument.getLong("lastCommit").toString());
         project.setLastCommitTimestamp(projectDocument.getLong("lastCommitTimestamp"));
         project.setProjectId(projectDocument.getString("projectId"));
         return project;
@@ -204,13 +205,15 @@ public class ProjectService implements HealthCheck{
             pf.setLastUpdate(doc.getLong("lastCommitTimestamp"));
             Document lastCommitsDoc = (Document) doc.get("lastCommits");
             LOGGER.info(lastCommitsDoc);
-            Set<String> keys = lastCommitsDoc.keySet();
-            Map<String,String> lastcommits = new HashMap<>();
-            for (String key : keys) {
-                LOGGER.info("github commits" + key + (String) lastCommitsDoc.get(key) + pf.getName());
-                lastcommits.put(key,(String) lastCommitsDoc.get(key));
-            }
-            pf.setLastCommit(lastcommits);
+            if(lastCommitsDoc != null){
+                Set<String> keys = lastCommitsDoc.keySet();
+                Map<String,String> lastcommits = new HashMap<>();
+                for (String key : keys) {
+                    LOGGER.info("github commits" + key + (String) lastCommitsDoc.get(key) + pf.getName());
+                    lastcommits.put(key,(String) lastCommitsDoc.get(key));
+                }
+                pf.setLastCommit(lastcommits);
+             }
             files.add(pf);
         }
         return files;
@@ -255,9 +258,6 @@ public class ProjectService implements HealthCheck{
                 mongoService.updateFile(projectFile);
             }  
         }
-        else{
-            //get all project files from mongo and update files lastCommit with commitId
-        }
         return commitAndPushProjectDetails;
     }
 
@@ -271,7 +271,7 @@ public class ProjectService implements HealthCheck{
         if(pullProjectDetails.get("commitId")!=null){
             commitId = pullProjectDetails.get("commitId");
         }
-        if(pullProjectDetails.get("newFiles")!=null){
+        if(pullProjectDetails.get("newFiles")!=null && commitId !=null){
             String newFiles = pullProjectDetails.get("newFiles");
             String[] newFilesArray = newFiles.split("\n");
             for(String newFile : newFilesArray){
@@ -285,6 +285,9 @@ public class ProjectService implements HealthCheck{
                 pullProjectDetails.remove(newFile);
                 }
             }
+            userProject.setLastCommit(commitId);
+            userProject.setLastCommitTimestamp(Instant.now().toEpochMilli());
+            mongoService.updateProject(userProject,userId);
             pullProjectDetails.remove("newFiles");
         }
         return pullProjectDetails;
@@ -302,7 +305,10 @@ public class ProjectService implements HealthCheck{
             Project project = new Project(repoProject.getName(), projectName, projectDescription, runtime,repoProject.getCommitId(),userId);
             mongoService.createProject(project);
             for(GitRepoFile repoFile : repoProject.getFiles()){
-                ProjectFile file = new ProjectFile(repoFile.getName(), repoFile.getBody(), repoProject.getName(), repoFile.getLastCommitTimestamp(),userId);
+                Map<String,String> lastCommit = new HashMap<>();
+                lastCommit.put("commitId",repoProject.getCommitId());
+                lastCommit.put("repoBranchUri",repoUri+"/"+branch);
+                ProjectFile file = new ProjectFile(repoFile.getName(), repoFile.getBody(), repoProject.getName(), repoFile.getLastCommitTimestamp(),userId,lastCommit,repoProject.getCommitId());
                 mongoService.createFile(file);
             }
         }
