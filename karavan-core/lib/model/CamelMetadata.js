@@ -1479,7 +1479,6 @@ exports.CamelModelMetadata = [
         new PropertyMeta('description', 'Description', "Sets the description of this node", 'string', '', '', false, false, false, false, '', ''),
     ]),
     new ElementMeta('bean', 'BeanDefinition', 'Bean', "Calls a Java bean", 'eip,endpoint', [
-        new PropertyMeta('className', 'Class Name', 'Sets the class name for which the bean will be created', 'string', '', '', false, false, false, false, '', ''),
         new PropertyMeta('ref', 'Ref', "Sets a reference to an exiting bean to use, which is looked up from the registry", 'string', '', '', false, false, false, false, '', ''),
         new PropertyMeta('method', 'Method', "Sets the method name on the bean to use", 'string', '', '', false, false, false, false, '', ''),
         new PropertyMeta('beanType', 'Bean Type', "Sets the class name (fully qualified) of the bean to use", 'string', '', '', false, false, false, false, '', ''),
@@ -1487,7 +1486,6 @@ exports.CamelModelMetadata = [
         new PropertyMeta('disabled', 'Disabled', "Whether to disable this EIP from the route during build time. Once an EIP has been disabled then it cannot be enabled later at runtime.", 'boolean', '', 'false', false, false, false, false, 'advanced', ''),
         new PropertyMeta('id', 'Id', "Sets the id of this node", 'string', '', '', false, false, false, false, '', ''),
         new PropertyMeta('description', 'Description', "Sets the description of this node", 'string', '', '', false, false, false, false, '', ''),
-        new PropertyMeta('codeDescription', 'Description of Code', 'Set the description of code', 'string', '', '', false, false, false, false, '', ''),
     ]),
     new ElementMeta('transacted', 'TransactedDefinition', 'Transacted', "Enables transaction on the route", 'configuration', [
         new PropertyMeta('ref', 'Ref', "Sets a reference to use for lookup the policy in the registry.", 'string', '', '', false, false, false, false, '', ''),
